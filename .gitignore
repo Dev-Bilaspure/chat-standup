@@ -1,5 +1,5 @@
 node_modules/
-secrets/
-data/
+/secrets/
+/data/
 .DS_Store
 spike/llm/out/

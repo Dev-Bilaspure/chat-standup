@@ -96,11 +96,11 @@ export function parseJsonResponse(body: string, endpoint: string): Parsed | null
       }
     }
     // Chat user record: [["<id>"], "Name", "<avatar>", "email", "First", "Last", …]
-    if (Array.isArray(a[0]) && a[0].length === 1 && isUserId(a[0][0]) && typeof a[1] === "string" && a[1] && typeof a[3] === "string" && a[3].includes("@")) {
+    if (Array.isArray(a[0]) && a[0].length === 1 && isUserId(a[0][0]) && typeof a[1] === "string" && a[1] && !a[1].includes("@") && typeof a[3] === "string" && a[3].includes("@")) {
       out.users.push({ id: a[0][0], name: a[1], email: a[3] });
     }
     // People API record: [[null,…,"<id>",{…}], "Name", …]
-    if (Array.isArray(a[0]) && isUserId(a[0][8]) && typeof a[1] === "string" && a[1] && a[1].length < 80) {
+    if (Array.isArray(a[0]) && isUserId(a[0][8]) && typeof a[1] === "string" && a[1] && a[1].length < 80 && !a[1].includes("@")) {
       out.users.push({ id: a[0][8] as string, name: a[1] });
     }
   });
