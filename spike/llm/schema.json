@@ -1,0 +1,12 @@
+{"type":"object","additionalProperties":false,"required":["ops"],"properties":{"ops":{"type":"array","items":{"type":"object","additionalProperties":false,
+ "required":["op","reason","evidence","confidence"],
+ "properties":{
+  "op":{"enum":["create","update","complete","none"]},
+  "item_id":{"type":"string"},
+  "type":{"enum":["todo","waiting_on","note"]},
+  "title":{"type":"string"},
+  "owner":{"type":"string"},
+  "due":{"type":"string","description":"ISO date if known"},
+  "confidence":{"type":"number"},
+  "evidence":{"type":"array","items":{"type":"string"}},
+  "reason":{"type":"string"}}}}}}

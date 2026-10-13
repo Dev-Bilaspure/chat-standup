@@ -1,0 +1,8 @@
+{
+  "name": "collector",
+  "private": true,
+  "type": "module",
+  "scripts": { "typecheck": "tsc --noEmit -p ." },
+  "dependencies": { "@chat-notes/core": "workspace:*" },
+  "devDependencies": { "@types/node": "^24.19.2", "typescript": "7.0.2" }
+}

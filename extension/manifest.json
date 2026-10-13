@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "chat-notes capture",
+  "version": "0.1.0",
+  "description": "Sends Google Chat web traffic to the chat-notes collector on 127.0.0.1 (local only).",
+  "host_permissions": [
+    "http://127.0.0.1:4777/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.google.com/*",
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "hook.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chat.google.com/*",
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "relay.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
+  "action": {
+    "default_title": "chat-notes capture"
+  }
+}

@@ -1,0 +1,14 @@
+## User
+Dev Bilaspure (dev@indihood.com), backend engineer, team "pod 06". Today is Tue 13 Oct 2026.
+
+## Open items
+- t1 [todo] Raise PR for PI certificate fixes (asked by Sharat Nair)
+- w1 [waiting_on] Sukhresswarun R to share staging credentials
+
+## New messages: group chat "pod 06" (members: Dev Bilaspure, Sharat Nair, Ujjwal Krishna, Sukhresswarun R, Aryan Chauhan)
+[m1 10:02] Sharat Nair: @Dev Bilaspure for the PI cert PR, can you also add the "steps to generate" doc in the same PR? Need it merged by Thursday
+[m2 10:03] Ujjwal Krishna: also someone needs to update the QA sheet for sprint 42
+[m3 10:05] Sukhresswarun R: @Dev Bilaspure sent you the staging creds on DM
+[m4 10:06] Dev Bilaspure: thanks! will add the doc 👍
+[m5 10:07] Aryan Chauhan: lunch at 1?
+[m6 10:09] Sharat Nair: and Dev, pls review Aryan's migration PR #9612 today if you can
