@@ -1,4 +1,4 @@
-# chat-notes: stand-up updates from Google Chat
+# chat-standup: stand-up updates from Google Chat
 
 Drafts your daily stand-up and date-range updates (e.g. weekly, for your lead) from your Google Chat
 messages. Everything runs locally; only the messages selected for a stand-up are sent to the LLM.
