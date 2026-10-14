@@ -44,6 +44,12 @@ The feedback is the point of the trial; a stand-up without feedback tells us not
 
 If a stand-up is bad, check **Data** first: if your messages weren't captured that day, it's a capture problem, not an LLM problem. Every bullet expands to the exact messages it came from, and each generation stores the exact input sent to the model.
 
+## Your writing style
+
+Updates are written in your voice: a flat "Updates:" list of one-liners, each expanding to details (PRs, Jira, people,
+status) with references taken from the cited messages. To steer the voice, put a few real updates you've written into
+`data/style.md` (local only, not in git); it's read on every generation, no restart needed.
+
 ## Configuration
 
 LLM settings go in `apps/web/.env.local` (then `pnpm services:restart`):

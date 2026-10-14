@@ -3,10 +3,10 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Inbox } from "lucide-react";
 import {
-  SECTIONS,
   generationCounts,
   isDateStr,
   listGenerations,
+  outputBullets,
   queryGenerations,
   standupToText,
   type GenerationSort,
@@ -47,7 +47,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   for (const g of listGenerations()) versions.set(`${g.kind}|${g.start}|${g.end}`, (versions.get(`${g.kind}|${g.start}|${g.end}`) ?? 0) + 1);
 
   const rows: LibraryItem[] = items.map((g) => {
-    const bullets = g.output ? SECTIONS.flatMap((s) => g.output![s.key].map((b) => b.text)) : [];
+    const bullets = g.output ? outputBullets(g.output).map((x) => x.bullet.text) : [];
     return {
       id: g.id,
       kind: g.kind,

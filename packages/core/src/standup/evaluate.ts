@@ -1,5 +1,5 @@
 // Evaluation over the trial period: how useful were the generated stand-ups?
-import { standupToText } from "./generate";
+import { outputBullets, standupToText } from "./output";
 import { listGenerations, type Generation, type Usage } from "./store";
 
 /** Word-level similarity (0..1) between the generated text and what was actually sent. */
@@ -61,7 +61,7 @@ export function evaluate(gens: Generation[] = listGenerations()): EvalSummary {
     byKind[kind] = { count: k.length, rated: kr.length, avgRating: avg(kr.map((g) => g.feedback!.rating!)) };
   }
   const judged = gens.filter((g) => g.feedback && g.output);
-  const bulletsJudged = judged.reduce((n, g) => n + Object.values(g.output!).flat().length, 0);
+  const bulletsJudged = judged.reduce((n, g) => n + outputBullets(g.output!).length, 0);
   const bulletsWrong = judged.reduce((n, g) => n + g.feedback!.wrongBullets.length, 0);
   return {
     generations: gens.length,
@@ -87,6 +87,3 @@ export function evaluate(gens: Generation[] = listGenerations()): EvalSummary {
 }
 
 export const missingItems = (missing: string) => missing.split("\n").filter((l) => l.trim()).length;
-
-/** Stable key for a bullet, used for per-bullet feedback. */
-export const bulletKey = (section: string, index: number) => `${section}:${index}`;

@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import type { TokenUsage } from "../llm";
-import type { Kind, StandupOutput } from "./generate";
+import type { Kind } from "./generate";
+import type { StandupOutput } from "./output";
 import type { InputStats } from "./select";
 
 export type Usage = "as_is" | "minor_edits" | "major_edits" | "not_used";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SECTIONS, bulletKey, getMessages, getSetting, standupToText, type Generation } from "@chat-notes/core";
+import { getMessages, getSetting, isUpdatesOutput, outputBullets, standupToText, type Generation } from "@chat-notes/core";
 import { CopyButton } from "@/components/copy-button";
 import { FeedbackForm } from "@/components/feedback-form";
 import { GenerationMenu, TrashBanner } from "@/components/generation-actions";
@@ -38,9 +38,11 @@ export function GenerationPanel({ g, showLink = true }: { g: Generation; showLin
     );
   }
 
-  const sources = getMessages(Object.values(g.output).flatMap((bs) => bs.flatMap((b) => b.sourceIds)), getSetting("self_id"));
+  const all = outputBullets(g.output);
+  const sources = getMessages(all.flatMap((x) => x.bullet.sourceIds), getSetting("self_id"));
   const text = standupToText(g.output);
-  const bullets = SECTIONS.flatMap((s) => g.output![s.key].map((b, i) => ({ key: bulletKey(s.key, i), section: s.title, text: b.text })));
+  const detailed = isUpdatesOutput(g.output) ? standupToText(g.output, { details: true }) : null;
+  const bullets = all.map((x) => ({ key: x.key, section: x.section ?? "Update", text: x.bullet.text }));
 
   return (
     <div className="space-y-4">
@@ -64,6 +66,7 @@ export function GenerationPanel({ g, showLink = true }: { g: Generation; showLin
           </CardDescription>
           <CardAction className="flex gap-2">
             <CopyButton text={text} />
+            {detailed && <CopyButton text={detailed} label="Copy with details" />}
             {!g.deletedMs && <GenerationMenu id={g.id} kind={g.kind} start={g.start} end={g.end} />}
           </CardAction>
         </CardHeader>

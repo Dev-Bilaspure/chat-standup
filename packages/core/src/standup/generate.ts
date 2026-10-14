@@ -1,10 +1,10 @@
 import { getDb } from "../db";
 import { generateJson, llmConfig } from "../llm";
-import { PROMPT_VERSION, SECTIONS, STANDUP_SCHEMA, dailyPrompt, rangePrompt, type SectionKey } from "./prompt";
+import type { UpdatesOutput } from "./output";
+import { PROMPT_VERSION, STANDUP_SCHEMA, dailyPrompt, rangePrompt } from "./prompt";
+import { extractReferences } from "./references";
 import { buildStandupInput, type InputStats } from "./select";
 
-export type Bullet = { text: string; sourceIds: string[] };
-export type StandupOutput = Record<SectionKey, Bullet[]>;
 export type Kind = "daily" | "range";
 
 /** Generates a stand-up and stores it (also on failure, so failures count in the evaluation). Returns the generation id. */
@@ -30,19 +30,21 @@ export async function generateStandup(kind: Kind, start: string, end: string): P
     base.model = cfg.model;
 
     const res = await generateJson({ system: p.system, user, schema: STANDUP_SCHEMA, schemaName: "standup" });
-    const raw = res.data as Record<string, { text: string; refs: string[] }[]>;
-    const output = Object.fromEntries(
-      SECTIONS.map((s) => [s.key, (raw[s.key] ?? []).map((b) => ({ text: b.text, sourceIds: (b.refs ?? []).map((r) => input.refs[r]).filter(Boolean) }))]),
-    ) as StandupOutput;
+    const raw = res.data as { updates?: { text: string; details?: string[]; refs?: string[] }[] };
+
+    // References come from the full text of the messages each update cites, not from the model.
+    const textOf = db.prepare("SELECT text FROM messages WHERE id = ?");
+    const output: UpdatesOutput = {
+      format: 2,
+      updates: (raw.updates ?? []).map((u) => {
+        const sourceIds = [...new Set((u.refs ?? []).map((r) => input.refs[r]).filter(Boolean))];
+        const texts = sourceIds.map((id) => (textOf.get(id) as { text: string } | undefined)?.text ?? "");
+        return { text: u.text.trim(), details: (u.details ?? []).map((d) => d.trim()).filter(Boolean), references: extractReferences(texts), sourceIds };
+      }),
+    };
 
     return Number(insert.run({ ...base, provider: res.provider, model: res.model, output: JSON.stringify(output), duration: res.durationMs, cost: res.costUsd ?? null, usage: res.usage ? JSON.stringify(res.usage) : null }).lastInsertRowid);
   } catch (err) {
     return Number(insert.run({ ...base, error: (err as Error).message }).lastInsertRowid);
   }
-}
-
-export function standupToText(output: StandupOutput): string {
-  return SECTIONS.filter((s) => output[s.key]?.length)
-    .map((s) => `${s.title}\n${output[s.key].map((b) => `- ${b.text}`).join("\n")}`)
-    .join("\n\n");
 }
