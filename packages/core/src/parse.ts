@@ -155,6 +155,17 @@ export function isUseful(r: CaptureRecord): boolean {
   return r.kind === "frame-loaded" || (r.kind !== "request" && (CHANNEL.test(r.endpoint) || JSON_API.test(r.endpoint)));
 }
 
+// Endpoints that never carry messages, people or chat names (measured over real captures), so their
+// responses aren't kept as raw captures. Unsent drafts are deliberately not kept. Anything not listed here,
+// including endpoints Chat adds later, is kept, so future parser improvements still have the data.
+const NOT_KEPT_RAW =
+  /\/api\/(search_integration_actions|get_unicode_emoji_data_v2|get_smart_replies|get_group_scoped_capabilities|heartbeat|get_user_topic_metadata|get_frecent_emojis_v2|update_frecent_emojis_v2|get_emoji_variants_v2|get_user_settings|get_self_user_status|list_blocked_users|list_unsent_messages|create_unsent_message|update_unsent_message|check_app_permission|mark_topic_readstate)\b|\/DynamiteWebUi\/data\/batchexecute/;
+
+/** Whether a record is kept as a raw capture (for re-parsing later). */
+export function isKeptRaw(r: CaptureRecord): boolean {
+  return isUseful(r) && r.captured !== false && !NOT_KEPT_RAW.test(r.endpoint ?? "");
+}
+
 /**
  * Stateful parser: reassembles responses that arrive in several slices, and keeps a tail of each
  * push-channel stream so blobs split across slices are still found. Feed records in capture order.

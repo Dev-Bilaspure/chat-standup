@@ -6,6 +6,9 @@ export class Ingestor {
   /** onlyConv: keep just this chat's messages (restoring one chat from raw captures). */
   constructor(private opts: { onlyConv?: string } = {}) {}
 
+  /** Whether the last record held messages only from blocked chats (and nothing else worth keeping). */
+  lastOnlyBlocked = false;
+
   private parser = new StreamParser();
   private db = getDb();
   private stmts = {
@@ -42,10 +45,12 @@ export class Ingestor {
 
   /** Returns how many messages the record contained. */
   ingest(r: CaptureRecord): number {
+    this.lastOnlyBlocked = false;
     if (!this.opts.onlyConv) this.stmts.minute.run(Math.floor(r.t / 60_000));
     const parsed = this.parser.push(r);
     if (!parsed) return 0;
     const keep = parsed.messages.filter((m) => (this.opts.onlyConv ? m.convId === this.opts.onlyConv : !this.isBlocked(m.convId)));
+    this.lastOnlyBlocked = parsed.messages.length > 0 && keep.length === 0 && !parsed.users.length && !parsed.conversations.length && !parsed.selfId;
     this.apply({ ...parsed, messages: keep }, r.t);
     return keep.length;
   }

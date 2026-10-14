@@ -1,9 +1,9 @@
-// Always-on local service: receives captures from the Chrome extension, keeps the useful ones
-// as raw JSONL (so the database can be rebuilt with `pnpm reparse`), and ingests them.
+// Always-on local service: receives captures from the Chrome extension, ingests them into the database,
+// and keeps the useful ones as raw JSONL (so the database can be rebuilt with `pnpm reparse`).
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { COLLECTOR_PORT, Ingestor, RAW_DIR, getDb, isUseful, toDateStr, type CaptureRecord } from "@chat-notes/core";
+import { COLLECTOR_PORT, Ingestor, RAW_DIR, getDb, isKeptRaw, toDateStr, type CaptureRecord } from "@chat-notes/core";
 
 fs.mkdirSync(RAW_DIR, { recursive: true });
 const ingestor = new Ingestor();
@@ -18,13 +18,16 @@ function handle(r: CaptureRecord) {
   records++;
   lastRecordAt = Date.now();
   if (r.kind === "frame-loaded") log(`Chat page loaded: ${r.endpoint}`);
-  if (isUseful(r) && r.captured !== false) {
-    fs.appendFileSync(path.join(RAW_DIR, `${toDateStr(new Date(r.t))}.jsonl`), JSON.stringify(r) + "\n");
-  }
+  let onlyBlocked = false;
   try {
     messages += ingestor.ingest(r);
+    onlyBlocked = ingestor.lastOnlyBlocked;
   } catch (err) {
     log(`ingest error on ${r.kind} ${r.endpoint}: ${(err as Error).message}`);
+  }
+  // Kept even when parsing failed (so a parser fix can recover it); not kept when it held only blocked chats.
+  if (isKeptRaw(r) && !onlyBlocked) {
+    fs.appendFileSync(path.join(RAW_DIR, `${toDateStr(new Date(r.t))}.jsonl`), JSON.stringify(r) + "\n");
   }
 }
 
