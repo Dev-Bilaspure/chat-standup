@@ -50,6 +50,19 @@ Updates are written in your voice: a flat "Updates:" list of one-liners, each ex
 status) with references taken from the cited messages. To steer the voice, put a few real updates you've written into
 `data/style.md` (local only, not in git); it's read on every generation, no restart needed.
 
+## Todos
+
+**Todos** finds what your chats say you need to do: asks (reviews, approvals, checks), things you said you'd do,
+and people you need to chase. Pick a day or a date range (past days only, up to yesterday) and **Find todos**.
+
+- Each day is read once. A range is scanned day by day, skipping days already scanned, so asking again (for the
+  same day, or a range that includes it) never creates duplicates. **Scan again** on a single day re-reads it, for
+  when more of that day was captured later; only new todos are added.
+- If the chat shows a todo was already done later, it's added already checked, with the message that shows it.
+- Click a todo's text to edit it (Enter to finish, Escape to undo). Expand it for details, references, the source
+  messages and a notes pad. Text and notes save as you type; there's no save button.
+- **All todos** shows everything; **Day** / **Date range** show todos from those days and whether they've been scanned.
+
 ## Configuration
 
 LLM settings go in `apps/web/.env.local` (then `pnpm services:restart`):

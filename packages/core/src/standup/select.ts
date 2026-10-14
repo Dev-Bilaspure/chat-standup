@@ -4,6 +4,8 @@
 // 1:1 DMs (directed at you). Busy chats are trimmed to your messages, mentions and their
 // neighbours. A few earlier messages per chat are added as context (marked, not to be reported).
 // Pasted code, JSON and logs are replaced by short placeholders (see compact.ts).
+// Optionally, a few later messages per chat are added so the model can tell whether something got
+// done after the period (used for todos).
 import { getDb, getSetting } from "../db";
 import { compactText } from "./compact";
 import { eachDay, rangeBounds, toDateStr } from "../time";
@@ -20,6 +22,7 @@ export type InputStats = {
   mine: number;
   conversations: number;
   contextMessages: number;
+  followUpMessages?: number;
   messagesInPeriod: number;
   truncated: boolean;
   conversationNames: string[];
@@ -40,7 +43,7 @@ export function getSelf(): { id: string; name: string } {
   return { id, name: row?.name ?? "the user" };
 }
 
-export function buildStandupInput(start: string, end: string): StandupInput {
+export function buildStandupInput(start: string, end: string, opts: { followUp?: number } = {}): StandupInput {
   const db = getDb();
   const self = getSelf();
   const [fromMs, toMs] = rangeBounds(start, end);
@@ -67,12 +70,13 @@ export function buildStandupInput(start: string, end: string): StandupInput {
       kept = msgs.filter((_, i) => keep.has(i));
     }
     const context = (db.prepare(`${SELECT} WHERE m.conv_id = ? AND m.created_us < ? ORDER BY m.created_us DESC LIMIT ?`).all(convId, fromMs * 1000, CONTEXT_BEFORE) as Row[]).reverse();
-    return { convId, name: chatName(convId, msgs, self.id), kind: msgs[0].conv_kind ?? "space", messages: kept, context };
+    const after = opts.followUp ? (db.prepare(`${SELECT} WHERE m.conv_id = ? AND m.created_us >= ? ORDER BY m.created_us LIMIT ?`).all(convId, toMs * 1000, opts.followUp) as Row[]) : [];
+    return { convId, name: chatName(convId, msgs, self.id), kind: msgs[0].conv_kind ?? "space", messages: kept, context, after };
   });
   chats.sort((a, b) => a.messages[0].created_us - b.messages[0].created_us);
 
   const compacted = new Map<string, ReturnType<typeof compactText>>();
-  for (const c of chats) for (const r of [...c.context, ...c.messages]) compacted.set(r.id, compactText(r.text));
+  for (const c of chats) for (const r of [...c.context, ...c.messages, ...c.after]) compacted.set(r.id, compactText(r.text));
 
   const refs: Record<string, string> = {};
   let n = 0;
@@ -95,7 +99,8 @@ export function buildStandupInput(start: string, end: string): StandupInput {
       .map((c) => {
         const head = `## ${c.kind === "dm" ? "Direct message with" : "Chat"}: ${c.name}`;
         const ctx = withContext && c.context.length ? ["(context, before the period — don't report)", ...c.context.map((r) => line(r, 200, true)), "(period starts)"] : [];
-        return [head, ...ctx, ...c.messages.map((r) => line(r, maxLen, false))].join("\n");
+        const later = withContext && c.after.length ? ["(after the period — only to tell whether something got done; don't report)", ...c.after.map((r) => line(r, 200, true))] : [];
+        return [head, ...ctx, ...c.messages.map((r) => line(r, maxLen, false)), ...later].join("\n");
       })
       .join("\n\n");
   };
@@ -118,6 +123,7 @@ export function buildStandupInput(start: string, end: string): StandupInput {
       mine: kept.filter(isMine).length,
       conversations: chats.length,
       contextMessages: chats.reduce((s, c) => s + c.context.length, 0),
+      followUpMessages: chats.reduce((s, c) => s + c.after.length, 0),
       messagesInPeriod: rows.length,
       truncated,
       conversationNames: chats.map((c) => c.name),

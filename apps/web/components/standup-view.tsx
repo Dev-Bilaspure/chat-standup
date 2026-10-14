@@ -1,7 +1,7 @@
-import { ChevronRight, ExternalLink, FileText, GitPullRequest, Link2, Ticket } from "lucide-react";
-import { SECTIONS, isUpdatesOutput, type Bullet, type Reference, type SourceMessage, type StandupOutput } from "@chat-notes/core";
+import { ChevronRight } from "lucide-react";
+import { SECTIONS, isUpdatesOutput, type Bullet, type SourceMessage, type StandupOutput } from "@chat-notes/core";
+import { RefChip, SourceMessages } from "@/components/sources";
 import { Badge } from "@/components/ui/badge";
-import { dateTime } from "@/lib/format";
 
 /** v2: flat "Updates" list; each update expands to details, references and source messages. v1: sections. */
 export function StandupView({ output, sources }: { output: StandupOutput; sources: Map<string, SourceMessage> }) {
@@ -75,51 +75,9 @@ function UpdateItem({ bullet: b, sources }: { bullet: Bullet; sources: Map<strin
             </div>
           )}
 
-          {b.sourceIds.length > 0 && (
-            <details className="group/src">
-              <summary className="cursor-pointer list-none text-xs text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-                <ChevronRight className="mr-1 inline size-3 transition-transform group-open/src:rotate-90" />
-                {b.sourceIds.length} source message{b.sourceIds.length === 1 ? "" : "s"}
-              </summary>
-              <div className="mt-2 space-y-2 border-l pl-3">
-                {b.sourceIds.map((id) => {
-                  const m = sources.get(id);
-                  if (!m) return <p key={id} className="text-xs text-muted-foreground">Message {id} not found</p>;
-                  return (
-                    <div key={id} className="text-xs">
-                      <div className="text-muted-foreground">
-                        {m.convName} · {dateTime(m.createdMs)} · <span className={m.mine ? "font-medium text-foreground" : ""}>{m.mine ? "You" : m.senderName}</span>
-                      </div>
-                      <div className="whitespace-pre-wrap break-words">{m.text.length > 500 ? `${m.text.slice(0, 500)}…` : m.text || "(attachment or card)"}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </details>
-          )}
+          <SourceMessages ids={b.sourceIds} sources={sources} />
         </div>
       </details>
     </li>
-  );
-}
-
-const REF_ICON = { pr: GitPullRequest, jira: Ticket, doc: FileText, link: Link2 };
-
-function RefChip({ r }: { r: Reference }) {
-  const Icon = REF_ICON[r.kind];
-  const body = (
-    <>
-      <Icon className="size-3.5" />
-      <span className="font-mono text-[11px]">{r.label}</span>
-      {r.url && <ExternalLink className="size-3 opacity-50" />}
-    </>
-  );
-  const cls = "inline-flex items-center gap-1.5 rounded-md border bg-background px-2 py-0.5 text-xs text-muted-foreground";
-  return r.url ? (
-    <a href={r.url} target="_blank" rel="noreferrer" className={`${cls} transition-colors hover:border-primary/40 hover:text-foreground`}>
-      {body}
-    </a>
-  ) : (
-    <span className={cls}>{body}</span>
   );
 }

@@ -62,6 +62,48 @@ const MIGRATIONS: string[] = [
    CREATE INDEX generations_period ON generations(start_date, end_date);`,
   // Token usage per generation (JSON, see TokenUsage).
   `ALTER TABLE generations ADD COLUMN token_usage TEXT;`,
+  // Todos: each scan of a date/range is a run; todos are kept and maintained individually.
+  `
+  CREATE TABLE todo_runs (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    start_date     TEXT NOT NULL,
+    end_date       TEXT NOT NULL,
+    created_ms     INTEGER NOT NULL,
+    provider       TEXT,
+    model          TEXT,
+    prompt_version TEXT NOT NULL,
+    input_stats    TEXT,
+    input_text     TEXT,
+    output         TEXT,                  -- raw model output (JSON)
+    duration_ms    INTEGER,
+    cost_usd       REAL,
+    token_usage    TEXT,
+    found          INTEGER NOT NULL DEFAULT 0,  -- todos the model found
+    added          INTEGER NOT NULL DEFAULT 0,  -- of those, new (not already on the list)
+    error          TEXT
+  );
+  CREATE INDEX todo_runs_period ON todo_runs(start_date, end_date);
+
+  CREATE TABLE todos (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id        INTEGER REFERENCES todo_runs(id),
+    source_date   TEXT NOT NULL,          -- local day of the earliest source message
+    text          TEXT NOT NULL,
+    original_text TEXT NOT NULL,          -- as generated, to show/undo edits
+    details       TEXT NOT NULL DEFAULT '[]',
+    refs          TEXT NOT NULL DEFAULT '[]',
+    source_ids    TEXT NOT NULL DEFAULT '[]',
+    asked_by      TEXT,
+    done_hint_id  TEXT,                   -- message suggesting it was already done
+    note          TEXT NOT NULL DEFAULT '',
+    done_ms       INTEGER,
+    done_by       TEXT,                   -- chat (marked from a message) | me
+    created_ms    INTEGER NOT NULL,
+    updated_ms    INTEGER NOT NULL,
+    deleted_ms    INTEGER
+  );
+  CREATE INDEX todos_source_date ON todos(source_date);
+  `,
 ];
 
 function migrate(db: DB) {
