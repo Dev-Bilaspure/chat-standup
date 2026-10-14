@@ -1,10 +1,12 @@
-import { getDb } from "../db";
+import { getDb, getSetting } from "../db";
 import type { TokenUsage } from "../llm";
 import type { Reference } from "../standup/references";
 
 export type Todo = {
   id: number;
   runId: number | null;
+  /** Added by hand, not found in chat: no details or sources. */
+  manual: boolean;
   sourceDate: string;
   text: string;
   originalText: string;
@@ -58,6 +60,7 @@ function toTodo(r: TodoRow): Todo {
   return {
     id: r.id,
     runId: r.run_id,
+    manual: r.run_id === null,
     sourceDate: r.source_date,
     text: r.text,
     originalText: r.original_text,
@@ -101,7 +104,7 @@ export function todoCounts(): { open: number; done: number } {
   return { open: r.open ?? 0, done: r.done ?? 0 };
 }
 
-export type TodoPatch = { text?: string; note?: string; done?: boolean; deleted?: boolean; resetText?: boolean };
+export type TodoPatch = { text?: string; note?: string; done?: boolean; deleted?: boolean; resetText?: boolean; askedBy?: string | null };
 
 /** Applies one change; returns the updated todo, or null if it doesn't exist. Empty text is rejected (keeps the old text). */
 export function updateTodo(id: number, patch: TodoPatch): Todo | null {
@@ -121,10 +124,46 @@ export function updateTodo(id: number, patch: TodoPatch): Todo | null {
   if (typeof patch.note === "string") add("note = ?", patch.note.slice(0, 50_000));
   if (typeof patch.done === "boolean") add("done_ms = ?, done_by = ?", patch.done ? now : null, patch.done ? "me" : null);
   if (typeof patch.deleted === "boolean") add("deleted_ms = ?", patch.deleted ? now : null);
+  if (patch.askedBy !== undefined) add("asked_by = ?", patch.askedBy?.trim().slice(0, 120) || null);
   if (!set.length) return current;
   add("updated_ms = ?", now);
   db.prepare(`UPDATE todos SET ${set.join(", ")} WHERE id = ?`).run(...args, id);
   return getTodo(id);
+}
+
+/** Adds a todo by hand, for the given day. */
+export function createTodo(input: { text: string; sourceDate: string; askedBy?: string | null }): Todo {
+  const text = input.text.trim().slice(0, 500);
+  if (!text) throw new Error("A todo can't be empty");
+  const now = Date.now();
+  const id = getDb()
+    .prepare("INSERT INTO todos (run_id, source_date, text, original_text, asked_by, created_ms, updated_ms) VALUES (NULL, ?, ?, ?, ?, ?, ?)")
+    .run(input.sourceDate, text, text, input.askedBy?.trim().slice(0, 120) || null, now, now).lastInsertRowid;
+  return getTodo(Number(id))!;
+}
+
+/**
+ * People to pick from for "from": everyone seen in chat (except you), most recently active first,
+ * plus names already used on todos that aren't chat users (typed in by hand).
+ */
+export function listPeople(): string[] {
+  const db = getDb();
+  const rows = db
+    .prepare(`
+      SELECT u.name, MAX(m.created_us) AS last
+      FROM users u LEFT JOIN messages m ON m.sender_id = u.id
+      WHERE u.id != ? AND u.name IS NOT NULL AND u.name != '' AND u.name NOT LIKE '%@%' AND u.name NOT LIKE 'http%'
+      GROUP BY u.id ORDER BY last IS NULL, last DESC, u.name`)
+    .all(getSetting("self_id") ?? "") as { name: string }[];
+  const names = [...new Set(rows.map((r) => r.name.trim()))];
+  const known = new Set(names.map((n) => n.toLowerCase()));
+  const used = db.prepare("SELECT DISTINCT asked_by FROM todos WHERE asked_by IS NOT NULL AND deleted_ms IS NULL").all() as { asked_by: string }[];
+  // A todo's "from" is often a first name ("Moksh"); only add names no chat user already covers.
+  for (const { asked_by } of used) {
+    const n = asked_by.trim().toLowerCase();
+    if (!known.has(n) && !names.some((full) => full.toLowerCase().split(/\s+/)[0] === n)) names.push(asked_by.trim());
+  }
+  return names;
 }
 
 type RunRow = {

@@ -61,6 +61,9 @@ and people you need to chase. Pick a day or a date range (past days only, up to 
 - If the chat shows a todo was already done later, it's added already checked, with the message that shows it.
 - Click a todo's text to edit it (Enter to finish, Escape to undo). Expand it for details, references, the source
   messages and a notes pad. Text and notes save as you type; there's no save button.
+- **Add your own** with the bar at the top (press `N` anywhere to jump there): type, optionally pick who it's from
+  (fuzzy search over people in your chats, or type any name) and the day, then Enter. Your own todos are marked
+  with a pencil and work like the others, minus the chat details. A later scan of that day won't add them again.
 - **All todos** shows everything; **Day** / **Date range** show todos from those days and whether they've been scanned.
 
 ## Configuration

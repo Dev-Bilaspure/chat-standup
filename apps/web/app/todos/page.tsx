@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { eachDay, getMessages, getSetting, isDateStr, listTodoRuns, listTodos, scannedDays, toDateStr, type TodoRun } from "@chat-notes/core";
+import { eachDay, getMessages, getSetting, isDateStr, listPeople, listTodoRuns, listTodos, scannedDays, toDateStr, type TodoRun } from "@chat-notes/core";
 import { FindTodosButton, TodoScope, type View } from "@/components/todos/todo-scope";
 import { TodoList } from "@/components/todos/todo-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -99,7 +99,17 @@ export default async function TodosPage({ searchParams }: { searchParams: Promis
         </Alert>
       )}
 
-      <TodoList key={scope ? `${scope.from}:${scope.to}` : "all"} todos={todos} sources={sources} today={today} yesterday={yesterday} empty={empty} />
+      <TodoList
+        key={scope ? `${scope.from}:${scope.to}` : "all"}
+        todos={todos}
+        sources={sources}
+        people={listPeople()}
+        today={today}
+        yesterday={yesterday}
+        empty={empty}
+        scope={scope}
+        composeDate={scope ? scope.to : today}
+      />
     </div>
   );
 }

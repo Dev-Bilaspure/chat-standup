@@ -71,9 +71,10 @@ async function scanDay(day: string): Promise<TodoRunResult> {
 
     // Todos already on the list that come from these messages: the model shouldn't repeat them.
     const inputIds = new Set(Object.values(input.refs));
-    const existing = (db.prepare("SELECT id, text, original_text, source_ids FROM todos WHERE deleted_ms IS NULL").all() as { id: number; text: string; original_text: string; source_ids: string }[])
+    // Also todos you added by hand for this day: they have no sources, so match them by day.
+    const existing = (db.prepare("SELECT id, run_id, source_date, text, original_text, source_ids FROM todos WHERE deleted_ms IS NULL").all() as { id: number; run_id: number | null; source_date: string; text: string; original_text: string; source_ids: string }[])
       .map((t) => ({ ...t, sources: JSON.parse(t.source_ids) as string[] }))
-      .filter((t) => t.sources.some((id) => inputIds.has(id)));
+      .filter((t) => t.sources.some((id) => inputIds.has(id)) || (t.run_id === null && t.source_date === day));
 
     const p = todoPrompt(input.self.name, start, end, existing.map((t) => t.text));
     const user = `${p.header}\n\n${input.text}`;

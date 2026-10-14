@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Check, ChevronRight, Loader2, MoreHorizontal, NotebookPen, RotateCcw, Trash2 } from "lucide-react";
+import { AlertCircle, Check, ChevronRight, Loader2, MoreHorizontal, NotebookPen, PenLine, RotateCcw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import type { SourceMessage, Todo } from "@chat-notes/core";
 import { RefChip, SourceMessages } from "@/components/sources";
+import { PersonPicker } from "@/components/todos/person-picker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -15,18 +17,34 @@ import { cn } from "@/lib/utils";
 type Props = {
   todo: Todo;
   sources: Map<string, SourceMessage>;
+  people: string[];
+  /** Just added: briefly highlighted and scrolled into view. */
+  fresh?: boolean;
   onDoneChange: (id: number, done: boolean) => void;
   onDelete: (id: number) => void;
+  onNewPerson: (name: string) => void;
 };
 
-export function TodoItem({ todo, sources, onDoneChange, onDelete }: Props) {
+export function TodoItem({ todo, sources, people, fresh, onDoneChange, onDelete, onNewPerson }: Props) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(todo.text);
   const [note, setNote] = useState(todo.note);
+  const [from, setFrom] = useState(todo.askedBy);
   // Bumped to remount the title editor with new text (after "Reset to original").
   const [titleVersion, setTitleVersion] = useState(0);
   const done = todo.doneMs !== null;
-  const edited = text.trim() !== todo.originalText.trim();
+  // Your own todos have no generated text to compare against.
+  const edited = !todo.manual && text.trim() !== todo.originalText.trim();
+
+  function changeFrom(name: string | null) {
+    const before = from;
+    setFrom(name);
+    if (name && !people.includes(name)) onNewPerson(name);
+    patchTodo(todo.id, { askedBy: name }).catch((err: Error) => {
+      setFrom(before);
+      toast.error(`Couldn't save who it's from: ${err.message}`);
+    });
+  }
 
   async function resetText() {
     await patchTodo(todo.id, { resetText: true });
@@ -35,7 +53,12 @@ export function TodoItem({ todo, sources, onDoneChange, onDelete }: Props) {
   }
 
   return (
-    <li className={cn("group rounded-lg transition-colors", open ? "bg-muted/40" : "hover:bg-muted/30")}>
+    <li
+      ref={(el) => {
+        if (fresh && el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }}
+      className={cn("group rounded-lg transition-colors duration-700", open ? "bg-muted/40" : "hover:bg-muted/30", fresh && "bg-primary/10")}
+    >
       <div className="flex items-start gap-3 px-2 py-1.5">
         <Checkbox checked={done} onCheckedChange={(c) => onDoneChange(todo.id, c === true)} className="mt-[5px]" aria-label={done ? "Mark as not done" : "Mark as done"} />
         <div className="min-w-0 flex-1">
@@ -48,7 +71,12 @@ export function TodoItem({ todo, sources, onDoneChange, onDelete }: Props) {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1 pt-0.5">
-          {todo.askedBy && <span className="hidden text-xs text-muted-foreground sm:inline">from {todo.askedBy}</span>}
+          {todo.manual && (
+            <span title="Added by you" aria-label="Added by you" className="text-muted-foreground">
+              <PenLine className="size-3.5" />
+            </span>
+          )}
+          {from && <span className="hidden text-xs text-muted-foreground sm:inline">from {from}</span>}
           {edited && <span className="text-xs text-muted-foreground">· edited</span>}
           <Button variant="ghost" size="icon-xs" onClick={() => setOpen((o) => !o)} aria-label={open ? "Collapse" : "Details and notes"} aria-expanded={open}>
             <ChevronRight className={cn("transition-transform", open && "rotate-90")} />
@@ -74,6 +102,11 @@ export function TodoItem({ todo, sources, onDoneChange, onDelete }: Props) {
 
       {open && (
         <div className="space-y-3 pt-1 pr-3 pb-3 pl-9">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>From</span>
+            <PersonPicker people={people} value={from} onChange={changeFrom} placeholder="Nobody (your own)" className="w-56" />
+            {todo.manual && <span>· Added by you</span>}
+          </div>
           {todo.doneBy === "chat" && done && (
             <p className="text-xs text-emerald-700 dark:text-emerald-400">Checked automatically: a later message shows this was done. Uncheck it if that&apos;s wrong.</p>
           )}
