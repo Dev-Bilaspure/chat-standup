@@ -35,6 +35,9 @@ export type ParsedMessage = {
   updatedUs: number;
   source: Source;
 };
+/** A display name, not an email or a URL (avatar links sometimes sit in the name slot). */
+const isName = (v: unknown): v is string => typeof v === "string" && v.trim() !== "" && !v.includes("@") && !/^https?:\/\//.test(v);
+
 export type ParsedUser = { id: string; name: string; email?: string };
 export type ParsedConversation = { id: string; kind: "dm" | "space"; name?: string };
 export type Parsed = { messages: ParsedMessage[]; users: ParsedUser[]; conversations: ParsedConversation[]; selfId?: string };
@@ -96,11 +99,11 @@ export function parseJsonResponse(body: string, endpoint: string): Parsed | null
       }
     }
     // Chat user record: [["<id>"], "Name", "<avatar>", "email", "First", "Last", …]
-    if (Array.isArray(a[0]) && a[0].length === 1 && isUserId(a[0][0]) && typeof a[1] === "string" && a[1] && !a[1].includes("@") && typeof a[3] === "string" && a[3].includes("@")) {
+    if (Array.isArray(a[0]) && a[0].length === 1 && isUserId(a[0][0]) && isName(a[1]) && typeof a[3] === "string" && a[3].includes("@")) {
       out.users.push({ id: a[0][0], name: a[1], email: a[3] });
     }
     // People API record: [[null,…,"<id>",{…}], "Name", …]
-    if (Array.isArray(a[0]) && isUserId(a[0][8]) && typeof a[1] === "string" && a[1] && a[1].length < 80 && !a[1].includes("@")) {
+    if (Array.isArray(a[0]) && isUserId(a[0][8]) && isName(a[1]) && a[1].length < 80) {
       out.users.push({ id: a[0][8] as string, name: a[1] });
     }
   });
