@@ -73,6 +73,14 @@ highlighted in amber across todos, stand-ups, source messages and the Library, a
 shows only todos from or mentioning them. A first name ("Moksh") counts as the person when nobody else in your chats
 shares it.
 
+## Blocking chats
+
+Not every chat is worth recording. **Data → Blocked chats**: search any space, group chat or DM and block it, or hover
+a chat under a stand-up's "Chats" and click its block icon. A blocked chat's new messages aren't saved (the collector
+picks this up within seconds) and it's never used for stand-ups or todos. You can also delete what was already
+recorded. Unblocking can restore its earlier messages from the raw captures, which stay on this Mac (`data/raw/`) and are
+what `pnpm reparse` rebuilds from; blocked chats stay out of a reparse too.
+
 ## Configuration
 
 LLM settings go in `apps/web/.env.local` (then `pnpm services:restart`):

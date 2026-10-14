@@ -1,5 +1,6 @@
 import { connection } from "next/server";
-import { COLLECTOR_PORT, dayCoverage, getDb, getSetting, toDateStr } from "@chat-notes/core";
+import { COLLECTOR_PORT, dayCoverage, getDb, getSetting, listChats, toDateStr } from "@chat-notes/core";
+import { BlockedChats } from "@/components/chats/blocked-chats";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { lastCaptureMs } from "@/components/capture-status";
 import { CoverageRows } from "@/components/coverage";
@@ -78,6 +79,16 @@ export default async function DataPage() {
         </CardHeader>
         <CardContent>
           <CoverageRows days={days} today={toDateStr(new Date())} />
+        </CardContent>
+      </Card>
+
+      <Card id="blocked">
+        <CardHeader>
+          <CardTitle>Blocked chats</CardTitle>
+          <CardDescription>Spaces, group chats and DMs that aren&apos;t worth recording. Their messages aren&apos;t saved and are never used for stand-ups or todos.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BlockedChats chats={listChats()} />
         </CardContent>
       </Card>
     </div>

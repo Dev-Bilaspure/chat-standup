@@ -106,6 +106,8 @@ const MIGRATIONS: string[] = [
   `,
   // People you marked as important (by display name; first names match too when unambiguous).
   `CREATE TABLE important_people (name TEXT PRIMARY KEY COLLATE NOCASE, created_ms INTEGER NOT NULL);`,
+  // Chats you blocked: not recorded, never used for stand-ups or todos. The name is kept for the list.
+  `CREATE TABLE blocked_conversations (conv_id TEXT PRIMARY KEY, name TEXT, kind TEXT, created_ms INTEGER NOT NULL);`,
 ];
 
 function migrate(db: DB) {

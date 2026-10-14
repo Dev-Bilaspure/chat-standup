@@ -1,4 +1,5 @@
-import { buildStandupInput, dayCoverage } from "@chat-notes/core";
+import { buildStandupInput, dayCoverage, listChats } from "@chat-notes/core";
+import { ChatChips } from "@/components/chats/chat-chips";
 import { CoverageRows } from "@/components/coverage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -16,13 +17,15 @@ export function InputSummary({ start, end }: { start: string; end: string }) {
     );
   }
   const days = dayCoverage(start, end);
+  const byId = new Map(listChats().map((c) => [c.id, c]));
+  const chats = (stats.conversationIds ?? []).map((id) => byId.get(id)).filter((c) => c !== undefined);
   const thin = stats.mine === 0;
   return (
     <div className="space-y-3 rounded-lg border bg-card p-4">
       <p className="text-sm">
         Based on <strong>{stats.messages}</strong> messages from <strong>{stats.conversations}</strong> chats, <strong>{stats.mine}</strong> of them yours.
       </p>
-      {stats.conversationNames.length > 0 && <p className="text-xs text-muted-foreground">Chats: {stats.conversationNames.join(" · ")}</p>}
+      {chats.length > 0 && <ChatChips chats={chats} />}
       <CoverageRows days={days} />
       {thin && (
         <p className="text-xs text-amber-600 dark:text-amber-400">

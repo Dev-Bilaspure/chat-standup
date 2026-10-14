@@ -26,6 +26,8 @@ export type InputStats = {
   messagesInPeriod: number;
   truncated: boolean;
   conversationNames: string[];
+  /** Same order as conversationNames. */
+  conversationIds?: string[];
   /** Pasted code/JSON/log snippets replaced by placeholders, and the characters that saved. */
   snippetsRemoved?: number;
   charsRemoved?: number;
@@ -47,7 +49,8 @@ export function buildStandupInput(start: string, end: string, opts: { followUp?:
   const db = getDb();
   const self = getSelf();
   const [fromMs, toMs] = rangeBounds(start, end);
-  const rows = db.prepare(`${SELECT} WHERE m.created_us >= ? AND m.created_us < ? ORDER BY m.created_us`).all(fromMs * 1000, toMs * 1000) as Row[];
+  // Blocked chats are left out even if their older messages were kept.
+  const rows = db.prepare(`${SELECT} WHERE m.created_us >= ? AND m.created_us < ? AND m.conv_id NOT IN (SELECT conv_id FROM blocked_conversations) ORDER BY m.created_us`).all(fromMs * 1000, toMs * 1000) as Row[];
 
   const mentionRe = new RegExp(`@${self.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i");
   const isMine = (r: Row) => r.sender_id === self.id;
@@ -127,6 +130,7 @@ export function buildStandupInput(start: string, end: string, opts: { followUp?:
       messagesInPeriod: rows.length,
       truncated,
       conversationNames: chats.map((c) => c.name),
+      conversationIds: chats.map((c) => c.convId),
       snippetsRemoved: sent.reduce((s, c) => s + c.snippets, 0),
       charsRemoved: sent.reduce((s, c) => s + c.removedChars, 0),
     },

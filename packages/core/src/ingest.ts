@@ -3,6 +3,9 @@ import { type CaptureRecord, type Parsed, StreamParser } from "./parse";
 
 /** Parses capture records and upserts the results. One instance per capture stream (collector or reparse). */
 export class Ingestor {
+  /** onlyConv: keep just this chat's messages (restoring one chat from raw captures). */
+  constructor(private opts: { onlyConv?: string } = {}) {}
+
   private parser = new StreamParser();
   private db = getDb();
   private stmts = {
@@ -26,14 +29,25 @@ export class Ingestor {
       ON CONFLICT(minute) DO UPDATE SET records = records + 1`),
   };
   private selfId = getSetting("self_id");
+  // Blocked chats, re-read every few seconds so blocking in the app takes effect without a restart.
+  private blocked = new Set<string>();
+  private blockedAt = 0;
+  private isBlocked(convId: string): boolean {
+    if (Date.now() - this.blockedAt > 3000) {
+      this.blocked = new Set((this.db.prepare("SELECT conv_id FROM blocked_conversations").all() as { conv_id: string }[]).map((r) => r.conv_id));
+      this.blockedAt = Date.now();
+    }
+    return this.blocked.has(convId);
+  }
 
   /** Returns how many messages the record contained. */
   ingest(r: CaptureRecord): number {
-    this.stmts.minute.run(Math.floor(r.t / 60_000));
+    if (!this.opts.onlyConv) this.stmts.minute.run(Math.floor(r.t / 60_000));
     const parsed = this.parser.push(r);
     if (!parsed) return 0;
-    this.apply(parsed, r.t);
-    return parsed.messages.length;
+    const keep = parsed.messages.filter((m) => (this.opts.onlyConv ? m.convId === this.opts.onlyConv : !this.isBlocked(m.convId)));
+    this.apply({ ...parsed, messages: keep }, r.t);
+    return keep.length;
   }
 
   private apply(p: Parsed, seen: number) {
