@@ -15,3 +15,4 @@ export * from "./standup/evaluate";
 export * from "./todos/prompt";
 export * from "./todos/store";
 export * from "./todos/generate";
+export * from "./people";

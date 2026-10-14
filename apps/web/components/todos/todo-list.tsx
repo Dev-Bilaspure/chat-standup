@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Star } from "lucide-react";
 import { toast } from "sonner";
 import type { SourceMessage, Todo } from "@chat-notes/core";
 import { TodoComposer } from "@/components/todos/todo-composer";
 import { TodoItem } from "@/components/todos/todo-item";
 import { day } from "@/lib/format";
+import { useImportant } from "@/lib/important";
 import { patchTodo } from "@/lib/todo-api";
 import { cn } from "@/lib/utils";
 
@@ -43,12 +45,21 @@ export function TodoList({ todos, sources, people: initialPeople, today, yesterd
     setItems(todos);
   }
   const [filter, setFilter] = useState<Filter>("open");
+  const [importantOnly, setImportantOnly] = useState(false);
+  const { isImportant, pattern, names: importantNames } = useImportant();
+  // A todo involves an important person when it's from them or mentions them.
+  const mentions = (t: Todo) => {
+    if (isImportant(t.askedBy)) return true;
+    if (!pattern) return false;
+    const re = new RegExp(pattern.source, "iu");
+    return re.test(t.text) || t.details.some((d) => re.test(d));
+  };
   // Todos checked/unchecked in this view stay in place until the tab changes, so nothing jumps away mid-click.
   const [sticky, setSticky] = useState<Set<number>>(new Set());
   const sourceMap = useMemo(() => new Map(sources), [sources]);
 
   const counts = { open: items.filter((t) => !t.doneMs).length, done: items.filter((t) => t.doneMs).length, all: items.length };
-  const visible = items.filter((t) => filter === "all" || sticky.has(t.id) || (filter === "open" ? !t.doneMs : !!t.doneMs));
+  const visible = items.filter((t) => (filter === "all" || sticky.has(t.id) || (filter === "open" ? !t.doneMs : !!t.doneMs)) && (!importantOnly || mentions(t)));
   const groups = new Map<string, Todo[]>();
   for (const t of visible) groups.set(t.sourceDate, [...(groups.get(t.sourceDate) ?? []), t]);
   const days = [...groups.keys()].sort().reverse();
@@ -125,6 +136,7 @@ export function TodoList({ todos, sources, people: initialPeople, today, yesterd
   return (
     <div className="space-y-4">
       {composer}
+      <div className="flex flex-wrap items-center gap-2">
       <div className="inline-flex rounded-lg bg-muted p-0.5" role="tablist">
         {(["open", "done", "all"] as const).map((f) => (
           <button
@@ -142,10 +154,24 @@ export function TodoList({ todos, sources, people: initialPeople, today, yesterd
           </button>
         ))}
       </div>
+        {importantNames.length > 0 && (
+          <button
+            type="button"
+            aria-pressed={importantOnly}
+            onClick={() => setImportantOnly((v) => !v)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-sm transition-colors",
+              importantOnly ? "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Star className={cn("size-3.5", importantOnly && "fill-current")} /> Important
+          </button>
+        )}
+      </div>
 
       {!visible.length ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
-          {filter === "open" ? `Nothing open here. All ${counts.done} done.` : "Nothing marked done yet."}
+          {importantOnly ? "Nothing here involves your important people." : filter === "open" ? `Nothing open here. All ${counts.done} done.` : "Nothing marked done yet."}
         </p>
       ) : (
         days.map((date) => [date, groups.get(date)!] as const).map(([date, list]) => (

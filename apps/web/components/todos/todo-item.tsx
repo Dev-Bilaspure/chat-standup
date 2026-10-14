@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertCircle, Check, ChevronRight, Loader2, MoreHorizontal, NotebookPen, PenLine, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { SourceMessage, Todo } from "@chat-notes/core";
+import { PeopleText, PersonName, StarToggle } from "@/components/people";
 import { RefChip, SourceMessages } from "@/components/sources";
 import { PersonPicker } from "@/components/todos/person-picker";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export function TodoItem({ todo, sources, people, fresh, onDoneChange, onDelete,
           {!open && note.trim() && (
             <button type="button" onClick={() => setOpen(true)} className="block max-w-full truncate text-left text-xs text-muted-foreground hover:text-foreground">
               <NotebookPen className="mr-1 inline size-3" />
-              {note.trim().split("\n")[0]}
+              <PeopleText text={note.trim().split("\n")[0]} />
             </button>
           )}
         </div>
@@ -76,7 +77,11 @@ export function TodoItem({ todo, sources, people, fresh, onDoneChange, onDelete,
               <PenLine className="size-3.5" />
             </span>
           )}
-          {from && <span className="hidden text-xs text-muted-foreground sm:inline">from {from}</span>}
+          {from && (
+            <span className="hidden text-xs text-muted-foreground sm:inline">
+              from <PersonName name={from} />
+            </span>
+          )}
           {edited && <span className="text-xs text-muted-foreground">· edited</span>}
           <Button variant="ghost" size="icon-xs" onClick={() => setOpen((o) => !o)} aria-label={open ? "Collapse" : "Details and notes"} aria-expanded={open}>
             <ChevronRight className={cn("transition-transform", open && "rotate-90")} />
@@ -105,6 +110,7 @@ export function TodoItem({ todo, sources, people, fresh, onDoneChange, onDelete,
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>From</span>
             <PersonPicker people={people} value={from} onChange={changeFrom} placeholder="Nobody (your own)" className="w-56" />
+            {from && <StarToggle name={from} />}
             {todo.manual && <span>· Added by you</span>}
           </div>
           {todo.doneBy === "chat" && done && (
@@ -113,7 +119,9 @@ export function TodoItem({ todo, sources, people, fresh, onDoneChange, onDelete,
           {todo.details.length > 0 && (
             <ul className="list-disc space-y-1 pl-4 text-[13px] text-foreground/85 marker:text-muted-foreground">
               {todo.details.map((d, i) => (
-                <li key={i}>{d}</li>
+                <li key={i}>
+                  <PeopleText text={d} />
+                </li>
               ))}
             </ul>
           )}

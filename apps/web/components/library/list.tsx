@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PeopleText } from "@/components/people";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,7 +132,7 @@ export function LibraryList({ items, inTrash }: { items: LibraryItem[]; inTrash:
                 <ul className="mt-1 space-y-0.5 text-sm text-muted-foreground">
                   {g.preview.map((p, i) => (
                     <li key={i} className="line-clamp-1">
-                      • {p}
+                      • <PeopleText text={p} />
                     </li>
                   ))}
                   {g.bullets > g.preview.length && <li className="text-xs">+ {g.bullets - g.preview.length} more</li>}

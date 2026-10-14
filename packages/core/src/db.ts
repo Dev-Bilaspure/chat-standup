@@ -104,6 +104,8 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX todos_source_date ON todos(source_date);
   `,
+  // People you marked as important (by display name; first names match too when unambiguous).
+  `CREATE TABLE important_people (name TEXT PRIMARY KEY COLLATE NOCASE, created_ms INTEGER NOT NULL);`,
 ];
 
 function migrate(db: DB) {

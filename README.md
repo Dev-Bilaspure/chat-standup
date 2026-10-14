@@ -66,6 +66,13 @@ and people you need to chase. Pick a day or a date range (past days only, up to 
   with a pencil and work like the others, minus the chat details. A later scan of that day won't add them again.
 - **All todos** shows everything; **Day** / **Date range** show todos from those days and whether they've been scanned.
 
+## Important people
+
+Click the ★ in the header to mark people as important (or the star next to a todo's **From**). Their names are
+highlighted in amber across todos, stand-ups, source messages and the Library, and **Important** on the Todos page
+shows only todos from or mentioning them. A first name ("Moksh") counts as the person when nobody else in your chats
+shares it.
+
 ## Configuration
 
 LLM settings go in `apps/web/.env.local` (then `pnpm services:restart`):

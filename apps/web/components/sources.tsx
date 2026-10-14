@@ -1,6 +1,7 @@
 // Shared by stand-ups and todos. No server-only imports, so client components can use it.
 import { ChevronRight, ExternalLink, FileText, GitPullRequest, Link2, Ticket } from "lucide-react";
 import type { Reference, SourceMessage } from "@chat-notes/core";
+import { PersonName } from "@/components/people";
 import { dateTime } from "@/lib/format";
 
 /** Collapsible list of the chat messages something was based on. */
@@ -19,7 +20,7 @@ export function SourceMessages({ ids, sources, highlight }: { ids: string[]; sou
           return (
             <div key={id} className="text-xs">
               <div className="text-muted-foreground">
-                {m.convName} · {dateTime(m.createdMs)} · <span className={m.mine ? "font-medium text-foreground" : ""}>{m.mine ? "You" : m.senderName}</span>
+                {m.convName} · {dateTime(m.createdMs)} · {m.mine ? <span className="font-medium text-foreground">You</span> : <PersonName name={m.senderName} />}
                 {highlight === id && <span className="ml-1.5 text-emerald-600 dark:text-emerald-400">· shows it was done</span>}
               </div>
               <div className="whitespace-pre-wrap break-words">{m.text.length > 500 ? `${m.text.slice(0, 500)}…` : m.text || "(attachment or card)"}</div>

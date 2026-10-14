@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
+import { listImportantPeople, listPeople } from "@chat-notes/core";
 import { Geist_Mono, Inter } from "next/font/google";
 import { CaptureStatus } from "@/components/capture-status";
+import { ImportantPeopleDialog } from "@/components/important-people-dialog";
 import { Nav } from "@/components/nav";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ImportantPeopleProvider } from "@/lib/important";
 import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
@@ -16,7 +20,8 @@ export const metadata: Metadata = {
   description: "Daily and weekly stand-up updates drafted from your Google Chat.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   return (
     // The theme script sets the "dark" class before React hydrates, hence suppressHydrationWarning.
     <html lang="en" className={`${inter.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
@@ -24,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
+        <ImportantPeopleProvider initial={listImportantPeople()} people={listPeople()}>
         <TooltipProvider>
           <header className="sticky top-0 z-40 border-b bg-background/75 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
             <div className="mx-auto flex max-w-4xl items-center gap-6 px-4 py-3">
@@ -34,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Nav />
               <div className="ml-auto flex items-center gap-4">
                 <CaptureStatus />
+                <ImportantPeopleDialog />
                 <ThemeSwitch />
               </div>
             </div>
@@ -41,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children}</main>
           <Toaster />
         </TooltipProvider>
+        </ImportantPeopleProvider>
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { SECTIONS, isUpdatesOutput, type Bullet, type SourceMessage, type StandupOutput } from "@chat-notes/core";
+import { PeopleText } from "@/components/people";
 import { RefChip, SourceMessages } from "@/components/sources";
 import { Badge } from "@/components/ui/badge";
 
@@ -49,7 +50,9 @@ function UpdateItem({ bullet: b, sources }: { bullet: Bullet; sources: Map<strin
       <details className="group rounded-lg transition-colors open:bg-muted/40">
         <summary className="flex cursor-pointer list-none items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/60 [&::-webkit-details-marker]:hidden">
           <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
-          <span className="flex-1 leading-relaxed">{b.text}</span>
+          <span className="flex-1 leading-relaxed">
+            <PeopleText text={b.text} />
+          </span>
           <span className="flex shrink-0 items-center gap-1.5 pt-0.5">
             {refs.filter((r) => r.kind === "pr" || r.kind === "jira").length > 0 && (
               <span className="text-xs text-muted-foreground">{refs.filter((r) => r.kind === "pr" || r.kind === "jira").length} ref</span>
@@ -62,7 +65,9 @@ function UpdateItem({ bullet: b, sources }: { bullet: Bullet; sources: Map<strin
           {details.length > 0 && (
             <ul className="list-disc space-y-1 pl-4 text-[13px] text-foreground/85 marker:text-muted-foreground">
               {details.map((d, i) => (
-                <li key={i}>{d}</li>
+                <li key={i}>
+                  <PeopleText text={d} />
+                </li>
               ))}
             </ul>
           )}
