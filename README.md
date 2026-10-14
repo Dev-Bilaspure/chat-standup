@@ -28,10 +28,10 @@ back after time away, open the chats you were active in: their history is captur
 
 | When | Do |
 |---|---|
-| End of each work day (~7 pm) | **Daily** → *Generate stand-up* for today. |
+| End of each work day (~7 pm) | **Stand-ups → Day** → *Generate stand-up* for today. |
 | Next morning, after stand-up | Open it again and fill in **Your feedback**: rating, how you used it, tick wrong bullets, list what was missing (one per line), and paste/edit what you actually said. |
-| Friday (or whenever you report to your lead) | **Date range** → *This week* → *Generate update*, then feedback the same way. |
-| Any time | **Library** lists every stand-up you've generated (all days, ranges and versions): search, filter by type/status/period, sort, open, copy, generate a new version, or delete (Trash with Undo; delete permanently from Trash). |
+| Friday (or whenever you report to your lead) | **Stand-ups → Date range** → *This week* → *Generate update*, then feedback the same way. |
+| Any time | **Stand-ups → Library** lists every stand-up you've generated (all days, ranges and versions): search, filter by type/status/period, sort, open, copy, generate a new version, or delete (Trash with Undo; delete permanently from Trash). |
 | End of trial | **Results** shows the numbers; *Export JSON* saves everything for analysis. Trashed items are excluded. |
 
 The feedback is the point of the trial; a stand-up without feedback tells us nothing. It takes about a minute.

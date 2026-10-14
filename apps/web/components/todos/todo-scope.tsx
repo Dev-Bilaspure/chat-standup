@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ViewTabs } from "@/components/view-tabs";
 import { compact, period } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 export type View = "all" | "day" | "range";
 
@@ -42,20 +42,7 @@ export function TodoScope({ view, date, start, end, maxDate, presets }: { view: 
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="inline-flex rounded-lg bg-muted p-0.5">
-        {tabs.map((t) => (
-          <Link
-            key={t.value}
-            href={href(t.q)}
-            className={cn(
-              "rounded-md px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground",
-              view === t.value && "bg-background text-foreground shadow-sm dark:bg-accent",
-            )}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </div>
+      <ViewTabs tabs={tabs.map((t) => ({ label: t.label, href: href(t.q), active: view === t.value }))} />
 
       {view === "day" && (
         <div className="flex items-center gap-1">

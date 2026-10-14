@@ -38,7 +38,7 @@ export function GenerationMenu({ id, kind, start, end }: Props) {
         >
           <RefreshCw /> Generate new version
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(`/library?from=${start}&to=${end}&type=${kind}`)}>
+        <DropdownMenuItem onClick={() => router.push(`/standups/library?from=${start}&to=${end}&type=${kind}`)}>
           <Library /> All versions in Library
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -46,7 +46,7 @@ export function GenerationMenu({ id, kind, start, end }: Props) {
           variant="destructive"
           onClick={() =>
             trash([id], () => {
-              if (pathname.startsWith("/g/")) router.push(kind === "daily" ? `/?date=${start}` : `/range?start=${start}&end=${end}`);
+              if (pathname.startsWith("/g/")) router.push(kind === "daily" ? `/standups?view=day&date=${start}` : `/standups?view=range&start=${start}&end=${end}`);
               router.refresh();
             })
           }
@@ -65,7 +65,7 @@ export function TrashBanner({ id }: { id: number }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
       <Trash2 className="size-4 text-destructive" />
-      <span className="flex-1">This stand-up is in Trash. It&apos;s excluded from the Daily/Range pages, results and export.</span>
+      <span className="flex-1">This stand-up is in Trash. It&apos;s excluded from the Day and Date range tabs, results and export.</span>
       <Button size="sm" variant="outline" onClick={() => restore([id], () => router.refresh())}>
         <RotateCcw /> Restore
       </Button>
@@ -80,7 +80,7 @@ export function TrashBanner({ id }: { id: number }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => purge([id], () => router.push("/library?status=trash"))}>
+            <AlertDialogAction variant="destructive" onClick={() => purge([id], () => router.push("/standups/library?status=trash"))}>
               Delete permanently
             </AlertDialogAction>
           </AlertDialogFooter>

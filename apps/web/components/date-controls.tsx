@@ -16,11 +16,11 @@ export function DayPicker({ date }: { date: string }) {
   const router = useRouter();
   return (
     <div className="flex items-center gap-1">
-      <Button variant="outline" size="icon" nativeButton={false} render={<Link href={`/?date=${shift(date, -1)}`} aria-label="Previous day" />}>
+      <Button variant="outline" size="icon" nativeButton={false} render={<Link href={`/standups?view=day&date=${shift(date, -1)}`} aria-label="Previous day" />}>
         <ChevronLeft />
       </Button>
-      <Input type="date" value={date} onChange={(e) => e.target.value && router.push(`/?date=${e.target.value}`)} className="w-40" />
-      <Button variant="outline" size="icon" nativeButton={false} render={<Link href={`/?date=${shift(date, 1)}`} aria-label="Next day" />}>
+      <Input type="date" value={date} onChange={(e) => e.target.value && router.push(`/standups?view=day&date=${e.target.value}`)} className="w-40" />
+      <Button variant="outline" size="icon" nativeButton={false} render={<Link href={`/standups?view=day&date=${shift(date, 1)}`} aria-label="Next day" />}>
         <ChevronRight />
       </Button>
     </div>
@@ -29,7 +29,7 @@ export function DayPicker({ date }: { date: string }) {
 
 export function RangePicker({ start, end, presets }: { start: string; end: string; presets: { label: string; start: string; end: string }[] }) {
   const router = useRouter();
-  const go = (s: string, e: string) => router.push(`/range?start=${s}&end=${e}`);
+  const go = (s: string, e: string) => router.push(`/standups?view=range&start=${s}&end=${e}`);
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Input type="date" value={start} onChange={(e) => e.target.value && go(e.target.value, end < e.target.value ? e.target.value : end)} className="w-40" />

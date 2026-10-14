@@ -40,7 +40,7 @@ export default async function ResultsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/library" />}>
+          <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/standups/library" />}>
             <Library /> Browse in Library
           </Button>
           <Button variant="outline" size="sm" nativeButton={false} render={<a href="/api/export" />}>
@@ -51,13 +51,13 @@ export default async function ResultsPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Usable (as-is or minor edits)" value={usageTotal ? pct(usable / usageTotal) : "–"} hint={`${usable} of ${usageTotal} with usage recorded`} />
-        <Stat label="Average rating" value={s.avgRating === null ? "–" : `${num(s.avgRating)} / 5`} hint={`${s.rated} rated`} href="/library?status=rated&sort=rating" />
+        <Stat label="Average rating" value={s.avgRating === null ? "–" : `${num(s.avgRating)} / 5`} hint={`${s.rated} rated`} href="/standups/library?status=rated&sort=rating" />
         <Stat label="Bullet precision" value={pct(s.bulletPrecision)} hint={`${s.bulletsWrong} of ${s.bulletsJudged} bullets marked wrong`} />
         <Stat label="Missing items per update" value={num(s.avgMissingItems)} hint={`${s.withMissing} updates missed something`} />
         <Stat label="Similarity to what you sent" value={pct(s.avgSimilarity)} hint="word overlap, draft vs final" />
-        <Stat label="Needs feedback" value={String(counts.needs_feedback)} hint="open them to rate" href="/library?status=needs_feedback" />
+        <Stat label="Needs feedback" value={String(counts.needs_feedback)} hint="open them to rate" href="/standups/library?status=needs_feedback" />
         <Stat label="Daily · Range" value={`${s.byKind.daily.count} · ${s.byKind.range.count}`} hint={`avg ${num(s.byKind.daily.avgRating)}★ · ${num(s.byKind.range.avgRating)}★`} />
-        <Stat label="Failures · avg time" value={`${s.failed} · ${s.avgDurationMs ? `${Math.round(s.avgDurationMs / 1000)}s` : "–"}`} hint={`≈ $${s.totalCostUsd.toFixed(2)} API-equivalent`} href={s.failed ? "/library?status=failed" : undefined} />
+        <Stat label="Failures · avg time" value={`${s.failed} · ${s.avgDurationMs ? `${Math.round(s.avgDurationMs / 1000)}s` : "–"}`} hint={`≈ $${s.totalCostUsd.toFixed(2)} API-equivalent`} href={s.failed ? "/standups/library?status=failed" : undefined} />
         <Stat
           label="Tokens used"
           value={s.tokensRecorded ? compact(s.totalTokens) : "–"}

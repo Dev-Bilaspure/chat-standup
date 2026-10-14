@@ -9,7 +9,7 @@ export default async function GenerationPage({ params }: { params: Promise<{ id:
   const g = getGeneration(Number((await params).id));
   if (!g) notFound();
   const period = g.start === g.end ? formatDay(g.start) : `${formatDay(g.start)} – ${formatDay(g.end)}`;
-  const back = g.kind === "daily" ? `/?date=${g.start}` : `/range?start=${g.start}&end=${g.end}`;
+  const back = g.kind === "daily" ? `/standups?view=day&date=${g.start}` : `/standups?view=range&start=${g.start}&end=${g.end}`;
   return (
     <div className="space-y-6">
       <div>

@@ -5,10 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/", label: "Daily" },
-  { href: "/range", label: "Date range" },
+  { href: "/standups", label: "Stand-ups" },
   { href: "/todos", label: "Todos" },
-  { href: "/library", label: "Library" },
   { href: "/results", label: "Results" },
   { href: "/data", label: "Data" },
 ];
@@ -18,7 +16,8 @@ export function Nav() {
   return (
     <nav className="flex gap-1 text-sm">
       {LINKS.map((l) => {
-        const active = l.href === "/" ? path === "/" : path.startsWith(l.href);
+        // A single stand-up (/g/…) belongs to Stand-ups.
+        const active = path.startsWith(l.href) || (l.href === "/standups" && path.startsWith("/g/"));
         return (
           <Link
             key={l.href}
