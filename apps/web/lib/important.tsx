@@ -3,14 +3,14 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-// Who's important, shared by every page. Names are display names ("Moksh Dipika Sikkem"); a first
-// name ("Moksh") also counts when no one else in your chats has that first name.
+// Who's important, shared by every page. Names are display names; a first name
+// ("Priya") also counts when no one else in your chats has that first name.
 
 type Important = {
   names: string[];
   people: string[];
   isImportant: (name: string | null | undefined) => boolean;
-  /** The full name a short one refers to ("Moksh" → "Moksh Dipika Sikkem"), or the name itself. */
+  /** The full name a first name refers to, or the name itself. */
   resolve: (name: string) => string;
   setImportant: (name: string, important: boolean) => void;
   /** Matches important names in free text; null when nobody is important. */

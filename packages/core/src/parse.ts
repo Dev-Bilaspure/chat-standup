@@ -108,7 +108,7 @@ export function parseJsonResponse(body: string, endpoint: string): Parsed | null
     }
   });
 
-  // Search tokens pair a conversation ID with a readable (lower-cased) name: [3,"pod 06: ujjwal AAQA…"]
+  // Search tokens pair a conversation ID with a readable (lower-cased) name: [3,"team sync AAQA…"]
   for (const m of body.matchAll(/\[3,"([^"\]]{1,200}?) ([A-Za-z0-9_-]{11})"\]/g)) {
     out.conversations.push({ id: m[2], kind: m[2].startsWith("AAQA") ? "space" : "dm", name: m[1] });
   }

@@ -1,6 +1,7 @@
 #!/bin/zsh
 # Runs the extraction test through headless Claude Code in several configurations, in parallel.
 # Usage: spike/llm/run.sh            → results in spike/llm/out/, summary via report.ts
+# Reads input.txt: a sample of chat messages to test with (local only, not committed; it holds real messages).
 cd "${0:A:h}"
 mkdir -p out
 SYSTEM="$(cat system.txt)"

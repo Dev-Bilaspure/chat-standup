@@ -27,12 +27,12 @@ const add = (id: string, type: string) => {
 for (const m of all.matchAll(/\[null,null,\["([A-Za-z0-9_-]{11})"\]\]/g)) add(m[1], "DM");
 for (const m of all.matchAll(/\[\["(AAQA[A-Za-z0-9_-]{7})"\]\]/g)) add(m[1], "space/group");
 
-// Search tokens like [3,"sukhresswarun r tTxJoSAAAAE"] pair a conversation with a readable name.
+// Search tokens like [3,"priya AbCdEfGhIjK"] pair a conversation with a readable name.
 for (const m of all.matchAll(/\[3,"([^"\]]{1,200}?) ([A-Za-z0-9_-]{11})"\]/g)) {
   const c = chats.get(m[2]);
   if (c && !c.label) c.label = m[1];
 }
-// Group DM names like ...,false,"Sharat, Sukhresswarun"],... next to a GROUP_DM marker, and named spaces.
+// Group DM names like ...,false,"Priya, Sam"],... next to a GROUP_DM marker, and named spaces.
 for (const m of all.matchAll(/\[\["(AAQA[A-Za-z0-9_-]{7})"\]\],"([^"]{1,120})"/g)) {
   const c = chats.get(m[1]);
   if (c && !c.label && !/^\d+$/.test(m[2])) c.label = m[2];

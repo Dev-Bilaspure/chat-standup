@@ -84,7 +84,7 @@ export function TodoComposer({ people, defaultDate, maxDate, onAdded }: { people
               e.currentTarget.blur();
             }
           }}
-          placeholder="Add a todo…"
+          placeholder="Add a todo, like “Send Sahana the release notes”…"
           aria-label="New todo"
           maxLength={500}
           className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"

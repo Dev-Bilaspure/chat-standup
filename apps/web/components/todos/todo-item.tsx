@@ -197,7 +197,7 @@ function NotesEditor({ id, initial, onChange }: { id: number; initial: string; o
     <div className="space-y-1">
       <Textarea
         value={value}
-        placeholder="Notes: what you did, links, next steps…"
+        placeholder="Notes: what you did, links, next steps… like “Pinged Meghana, waiting on QA”"
         onChange={(e) => {
           setValue(e.target.value);
           set(e.target.value);

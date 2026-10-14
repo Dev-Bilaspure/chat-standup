@@ -70,7 +70,7 @@ and people you need to chase. Pick a day or a date range (past days only, up to 
 
 Click the ★ in the header to mark people as important (or the star next to a todo's **From**). Their names are
 highlighted in amber across todos, stand-ups, source messages and the Library, and **Important** on the Todos page
-shows only todos from or mentioning them. A first name ("Moksh") counts as the person when nobody else in your chats
+shows only todos from or mentioning them. A first name ("Priya") counts as the person when nobody else in your chats
 shares it.
 
 ## Blocking chats

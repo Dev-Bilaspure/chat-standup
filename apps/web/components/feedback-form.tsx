@@ -99,7 +99,7 @@ export function FeedbackForm({ generationId, bullets, generatedText, initial }: 
 
       <div className="space-y-2">
         <Label htmlFor={`missing-${generationId}`}>What was missing? One item per line</Label>
-        <Textarea id={`missing-${generationId}`} value={missing} onChange={(e) => setMissing(e.target.value)} placeholder={"Reviewed Aryan's PR #9612\nDebugged the staging deploy with Ujjwal"} rows={3} />
+        <Textarea id={`missing-${generationId}`} value={missing} onChange={(e) => setMissing(e.target.value)} placeholder={"Reviewed Ashwin's PR #9612\nDebugged the staging deploy with Ujjwal"} rows={3} />
       </div>
 
       <div className="space-y-2">

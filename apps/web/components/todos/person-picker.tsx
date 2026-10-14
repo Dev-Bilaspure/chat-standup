@@ -11,7 +11,7 @@ const NEW = "\u0000new:";
 const label = (v: string) => (v.startsWith(NEW) ? v.slice(NEW.length) : v);
 
 /** "From" field: pick someone from your chats with fuzzy search, or type a new name. */
-export function PersonPicker({ people, value, onChange, placeholder = "From…", className }: { people: string[]; value: string | null; onChange: (name: string | null) => void; placeholder?: string; className?: string }) {
+export function PersonPicker({ people, value, onChange, placeholder = "From… like Ujjwal", className }: { people: string[]; value: string | null; onChange: (name: string | null) => void; placeholder?: string; className?: string }) {
   const [query, setQuery] = useState(value ?? "");
   const items = useMemo(() => {
     const q = query.trim();

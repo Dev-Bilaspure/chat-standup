@@ -1,5 +1,5 @@
 // Fuzzy matching for short names: every word of the query must match a word start, a substring,
-// or letters in order ("ujw" → Ujjwal Krishna, "sh nair" → Sharat Nair, "ujwal" → Ujjwal).
+// or letters in order ("pri" and "prya" both find Priya).
 
 function gapsInOrder(text: string, query: string): number | null {
   let from = 0;

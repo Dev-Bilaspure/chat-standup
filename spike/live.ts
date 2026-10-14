@@ -7,6 +7,8 @@ import path from "node:path";
 
 const DIR = path.resolve(import.meta.dirname, "../data/capture");
 const showText = process.argv.includes("--text");
+// Your display name in Chat, to tell your own messages apart: SELF_NAME="Your Name" tsx live.ts
+const SELF_NAME = process.env.SELF_NAME ?? "";
 type Capture = { seq: number; t: number; frame: string; kind: string; endpoint: string; body: string | null };
 const all: Capture[] = fs
   .readdirSync(DIR)
@@ -127,7 +129,7 @@ for (const e of events) {
   const where = !screen ? "UNKNOWN" : screen.conv === e.conv ? "viewing" : "BACKGROUND";
   if (where === "BACKGROUND") {
     background++;
-    if (e.sender && names.get(e.sender) !== "Dev Bilaspure") backgroundFromOthers++;
+    if (e.sender && names.get(e.sender) !== SELF_NAME) backgroundFromOthers++;
   }
   const who = e.sender ? (names.get(e.sender) ?? e.sender) : "?";
   const extra = where === "BACKGROUND" ? `   (on screen: ${label(screen?.conv)})` : "";

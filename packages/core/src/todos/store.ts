@@ -158,7 +158,7 @@ export function listPeople(): string[] {
   const names = [...new Set(rows.map((r) => r.name.trim()))];
   const known = new Set(names.map((n) => n.toLowerCase()));
   const used = db.prepare("SELECT DISTINCT asked_by FROM todos WHERE asked_by IS NOT NULL AND deleted_ms IS NULL").all() as { asked_by: string }[];
-  // A todo's "from" is often a first name ("Moksh"); only add names no chat user already covers.
+  // A todo's "from" is often a first name ("Priya"); only add names no chat user already covers.
   for (const { asked_by } of used) {
     const n = asked_by.trim().toLowerCase();
     if (!known.has(n) && !names.some((full) => full.toLowerCase().split(/\s+/)[0] === n)) names.push(asked_by.trim());

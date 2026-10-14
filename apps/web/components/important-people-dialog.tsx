@@ -29,7 +29,7 @@ export function ImportantPeopleDialog() {
           key={pickerKey}
           people={candidates}
           value={null}
-          placeholder="Add someone…"
+          placeholder="Add someone, like Sharat…"
           className="w-full"
           onChange={(name) => {
             if (!name) return;
