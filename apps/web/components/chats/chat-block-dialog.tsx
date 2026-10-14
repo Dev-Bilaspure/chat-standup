@@ -80,7 +80,7 @@ export function ChatBlockDialog({ chat, open, onOpenChange, onDone }: { chat: Ch
             ) : (
               <>
                 Restore its earlier messages
-                <span className="block text-xs text-muted-foreground">From your raw captures on this Mac, including any sent while it was blocked that Chat loaded. Takes a few seconds.</span>
+                <span className="block text-xs text-muted-foreground">From the raw captures on this Mac, which go back about a month, including any sent while it was blocked that Chat loaded. Takes a few seconds.</span>
               </>
             )}
           </span>

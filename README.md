@@ -81,6 +81,19 @@ picks this up within seconds) and it's never used for stand-ups or todos. You ca
 recorded. Unblocking can restore its earlier messages from the raw captures, which stay on this Mac (`data/raw/`) and are
 what `pnpm reparse` rebuilds from; blocked chats stay out of a reparse too.
 
+## Storage
+
+Everything stays on this Mac and is kept bounded, so capture can run for months:
+
+- **Database** (`data/chat-notes.db`): messages, people, chats, stand-ups, todos and notes; the app only reads this.
+  Backed up daily to `data/backups/` (last 7 days, then one a week for 4 more weeks), each copy checked before it's kept.
+- **Raw captures** (`data/raw/`): the Chat responses as received, kept so recent days can be re-parsed after a parser
+  fix (`pnpm reparse`) or a blocked chat restored. Endpoints that never carry messages or names aren't kept, finished
+  days are compressed (about 20× smaller), and days older than `RAW_RETENTION_DAYS` (30, in
+  `packages/core/src/storage.ts`) are deleted, only after confirming every message in them is in the database.
+
+The collector does this hourly; **Data → Storage** shows the sizes and free disk.
+
 ## Configuration
 
 LLM settings go in `apps/web/.env.local` (then `pnpm services:restart`):
@@ -98,11 +111,11 @@ LLM_MODEL=sonnet           # default for claude-code
 | Command | |
 |---|---|
 | `pnpm services:install` / `services:restart` / `services:uninstall` | Background services (restart after code changes) |
-| `pnpm reparse` | Rebuild messages from raw captures (after parser changes); keeps generations and feedback |
+| `pnpm reparse` | Re-read the raw captures on disk (last 30 days) into the database after a parser fix; backs up first and deletes nothing |
 | `pnpm collector` / `pnpm web` | Run in the foreground for development (stop the services first; same ports) |
 | `pnpm typecheck` | Typecheck all packages |
 
-Logs: `data/logs/collector.log`, `data/logs/web.log`. Data: `data/chat-notes.db`, raw captures in `data/raw/`.
+Logs: `data/logs/collector.log`, `data/logs/web.log`. Data: `data/chat-notes.db`, raw captures in `data/raw/`, backups in `data/backups/`.
 
 ## Layout
 

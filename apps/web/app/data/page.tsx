@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { COLLECTOR_PORT, dayCoverage, getDb, getSetting, listChats, toDateStr } from "@chat-notes/core";
+import { COLLECTOR_PORT, dayCoverage, getDb, getSetting, listChats, storageStats, toDateStr } from "@chat-notes/core";
 import { BlockedChats } from "@/components/chats/blocked-chats";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { lastCaptureMs } from "@/components/capture-status";
@@ -82,6 +82,8 @@ export default async function DataPage() {
         </CardContent>
       </Card>
 
+      <StorageCard />
+
       <Card id="blocked">
         <CardHeader>
           <CardTitle>Blocked chats</CardTitle>
@@ -92,5 +94,40 @@ export default async function DataPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+const mb = (bytes: number) => (bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${(bytes / 1e6).toFixed(bytes < 10e6 ? 1 : 0)} MB`);
+
+/** Where the space goes, and that backups and raw cleanup are running. */
+function StorageCard() {
+  const s = storageStats();
+  const lowDisk = s.freeBytes !== null && s.freeBytes < 5e9;
+  const items = [
+    { label: "Database", value: mb(s.dbBytes), hint: "messages, stand-ups, todos, notes" },
+    { label: "Raw captures", value: mb(s.raw.bytes), hint: `${s.raw.days} day${s.raw.days === 1 ? "" : "s"}${s.raw.oldest ? ` since ${s.raw.oldest}` : ""} · today ${mb(s.raw.todayBytes)}` },
+    { label: "Backups", value: s.backups.count ? mb(s.backups.bytes) : "none yet", hint: s.backups.latest ? `${s.backups.count}, latest ${s.backups.latest}` : "first one runs within the hour" },
+    { label: "Free disk", value: s.freeBytes === null ? "–" : mb(s.freeBytes), hint: lowDisk ? "running low" : "on this Mac" },
+  ];
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Storage</CardTitle>
+        <CardDescription>
+          Raw captures are kept for {s.retentionDays} days (compressed once a day is over) so recent days can be re-parsed after a fix; older ones are deleted
+          once every message in them is confirmed to be in the database. The database is backed up daily (last 7 days, plus one a week for 4 weeks) in{" "}
+          <code className="text-xs">data/backups</code>.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {items.map((i) => (
+          <div key={i.label} className="rounded-lg border bg-background p-3">
+            <div className="text-xs text-muted-foreground">{i.label}</div>
+            <div className={i.label === "Free disk" && lowDisk ? "font-semibold text-destructive" : "font-semibold"}>{i.value}</div>
+            <div className="truncate text-xs text-muted-foreground">{i.hint}</div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

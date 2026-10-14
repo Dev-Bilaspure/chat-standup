@@ -1,9 +1,10 @@
 // Always-on local service: receives captures from the Chrome extension, ingests them into the database,
-// and keeps the useful ones as raw JSONL (so the database can be rebuilt with `pnpm reparse`).
+// and keeps the useful ones as raw JSONL for re-parsing recent days (`pnpm reparse`). Hourly maintenance
+// backs up the database, compresses finished raw days and deletes raw days past the retention window.
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { COLLECTOR_PORT, Ingestor, RAW_DIR, getDb, isKeptRaw, toDateStr, type CaptureRecord } from "@chat-notes/core";
+import { COLLECTOR_PORT, Ingestor, RAW_DIR, getDb, isKeptRaw, runMaintenance, toDateStr, type CaptureRecord } from "@chat-notes/core";
 
 fs.mkdirSync(RAW_DIR, { recursive: true });
 const ingestor = new Ingestor();
@@ -64,6 +65,10 @@ server.on("error", (err) => {
   log(`server error: ${err.message}`);
   process.exit(1);
 });
+
+// Maintenance shortly after start, then hourly; each step only does work once a day.
+setTimeout(() => void runMaintenance(log), 60_000);
+setInterval(() => void runMaintenance(log), 60 * 60_000);
 
 // Hourly heartbeat in the log, so gaps are visible when reading it later.
 setInterval(() => {

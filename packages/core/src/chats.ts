@@ -1,7 +1,6 @@
 // Chats (spaces, group chats, DMs) and blocking them.
 import { getDb, getSetting } from "./db";
-import { Ingestor } from "./ingest";
-import { readRawRecords } from "./raw";
+import { replayRaw } from "./storage";
 
 export type ChatKind = "space" | "group" | "dm";
 export type Chat = { id: string; kind: ChatKind; name: string; messages: number; lastMs: number | null; blockedMs: number | null };
@@ -59,7 +58,6 @@ export function unblockChat(convId: string, opts: { restore: boolean }): number 
   db.prepare("DELETE FROM blocked_conversations WHERE conv_id = ?").run(convId);
   if (!opts.restore) return 0;
   const before = (db.prepare("SELECT COUNT(*) AS n FROM messages WHERE conv_id = ?").get(convId) as { n: number }).n;
-  const ingestor = new Ingestor({ onlyConv: convId });
-  for (const r of readRawRecords().records) ingestor.ingest(r);
+  replayRaw({ onlyConv: convId });
   return (db.prepare("SELECT COUNT(*) AS n FROM messages WHERE conv_id = ?").get(convId) as { n: number }).n - before;
 }

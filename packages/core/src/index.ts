@@ -16,5 +16,5 @@ export * from "./todos/prompt";
 export * from "./todos/store";
 export * from "./todos/generate";
 export * from "./people";
-export * from "./raw";
+export * from "./storage";
 export * from "./chats";
