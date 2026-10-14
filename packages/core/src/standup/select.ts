@@ -3,7 +3,9 @@
 // Included conversations: ones where you posted in the period, where you were @mentioned, and
 // 1:1 DMs (directed at you). Busy chats are trimmed to your messages, mentions and their
 // neighbours. A few earlier messages per chat are added as context (marked, not to be reported).
+// Pasted code, JSON and logs are replaced by short placeholders (see compact.ts).
 import { getDb, getSetting } from "../db";
+import { compactText } from "./compact";
 import { eachDay, rangeBounds, toDateStr } from "../time";
 
 const PER_CONV_CAP = 80;
@@ -21,6 +23,9 @@ export type InputStats = {
   messagesInPeriod: number;
   truncated: boolean;
   conversationNames: string[];
+  /** Pasted code/JSON/log snippets replaced by placeholders, and the characters that saved. */
+  snippetsRemoved?: number;
+  charsRemoved?: number;
 };
 export type StandupInput = { self: { id: string; name: string }; text: string; refs: Record<string, string>; stats: InputStats };
 
@@ -66,6 +71,9 @@ export function buildStandupInput(start: string, end: string): StandupInput {
   });
   chats.sort((a, b) => a.messages[0].created_us - b.messages[0].created_us);
 
+  const compacted = new Map<string, ReturnType<typeof compactText>>();
+  for (const c of chats) for (const r of [...c.context, ...c.messages]) compacted.set(r.id, compactText(r.text));
+
   const refs: Record<string, string> = {};
   let n = 0;
   const multiDay = start !== end;
@@ -75,7 +83,8 @@ export function buildStandupInput(start: string, end: string): StandupInput {
     const d = new Date(r.created_us / 1000);
     const when = (multiDay || isContext ? d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }) + " " : "") + d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
     const who = isMine(r) ? "ME" : (r.sender_name ?? "Unknown");
-    const text = r.text.trim() ? r.text.replace(/\s+/g, " ").slice(0, maxLen) + (r.text.length > maxLen ? "…" : "") : "(attachment or card, no text)";
+    const clean = compacted.get(r.id)!.text.replace(/\s+/g, " ");
+    const text = clean ? clean.slice(0, maxLen) + (clean.length > maxLen ? "…" : "") : "(attachment or card, no text)";
     return `[${ref}] ${when} · ${who}: ${text}`;
   };
 
@@ -99,6 +108,7 @@ export function buildStandupInput(start: string, end: string): StandupInput {
   if (text.length > CHAR_BUDGET) text = text.slice(0, CHAR_BUDGET);
 
   const kept = chats.flatMap((c) => c.messages);
+  const sent = [...compacted.values()];
   return {
     self,
     text,
@@ -111,6 +121,8 @@ export function buildStandupInput(start: string, end: string): StandupInput {
       messagesInPeriod: rows.length,
       truncated,
       conversationNames: chats.map((c) => c.name),
+      snippetsRemoved: sent.reduce((s, c) => s + c.snippets, 0),
+      charsRemoved: sent.reduce((s, c) => s + c.removedChars, 0),
     },
   };
 }

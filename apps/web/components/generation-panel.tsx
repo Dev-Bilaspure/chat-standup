@@ -9,7 +9,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { dateTime } from "@/lib/format";
+import { compact, dateTime } from "@/lib/format";
 
 export function GenerationPanel({ g, showLink = true }: { g: Generation; showLink?: boolean }) {
   const meta = [dateTime(g.createdMs), g.model, g.durationMs && `${(g.durationMs / 1000).toFixed(0)}s`, g.stats && `${g.stats.messages} msgs from ${g.stats.conversations} chats`, g.promptVersion]
@@ -73,6 +73,11 @@ export function GenerationPanel({ g, showLink = true }: { g: Generation; showLin
         <CardContent>
           <StandupView output={g.output} sources={sources} />
           {g.stats?.truncated && <p className="mt-4 text-xs text-muted-foreground">Some busy chats were trimmed to your messages and mentions.</p>}
+          {!!g.stats?.snippetsRemoved && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              {g.stats.snippetsRemoved} pasted code/log snippet{g.stats.snippetsRemoved === 1 ? " was" : "s were"} left out of the model input ({compact(g.stats.charsRemoved ?? 0)} characters).
+            </p>
+          )}
           <div className="mt-5 border-t pt-3">
             <TokenUsageRow usage={g.usage} />
           </div>

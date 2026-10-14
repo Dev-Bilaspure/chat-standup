@@ -4,7 +4,7 @@ import { DATA_DIR } from "../paths";
 import { formatDay } from "../time";
 
 /** Bump when prompts or input selection change, so evaluation can compare versions. */
-export const PROMPT_VERSION = "standup-v2";
+export const PROMPT_VERSION = "standup-v3";
 
 /**
  * Real updates the user wrote, used as a style reference. Kept in data/ (local, not in git) because
@@ -54,6 +54,8 @@ Leave out:
 - Other people's work the user wasn't involved in.
 - Anything you'd have to guess. If the messages don't support it, leave it out. Never invent details, numbers or names.
 - Messages marked as context (before the period); use them only to understand what later messages refer to.
+
+Pasted code, JSON, logs and stack traces have been replaced by placeholders like "[stack trace, 23 lines: java.lang.NullPointerException…]" and long links shortened. Treat a placeholder as "the user shared that here"; don't describe its contents beyond what the placeholder says.
 
 How to write each update ("text"):
 - Write it the way the user writes to their lead: plain sentences starting with a past-tense verb — "Completed …", "Raised and merged a fix for …", "Tested …", "Connected with Sam and started working on …", "Worked on …", "Updated …".

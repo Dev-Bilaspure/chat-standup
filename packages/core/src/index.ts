@@ -7,6 +7,7 @@ export * from "./llm";
 export * from "./standup/prompt";
 export * from "./standup/output";
 export * from "./standup/references";
+export * from "./standup/compact";
 export * from "./standup/select";
 export * from "./standup/generate";
 export * from "./standup/store";
