@@ -15,6 +15,12 @@ let messages = 0;
 
 const log = (msg: string) => console.log(`${new Date().toLocaleString("en-IN")}  ${msg}`);
 
+// Only the extension may send captures. Requests must be addressed to this Mac by name (stops DNS
+// rebinding), and captures from a browser must come from an extension, not a web page (which could
+// otherwise inject fake messages). No Origin means a tool on this Mac, like curl. Bodies are capped.
+const LOCAL_HOST = /^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/;
+const MAX_BODY = 32 * 1024 * 1024;
+
 function handle(r: CaptureRecord) {
   records++;
   lastRecordAt = Date.now();
@@ -33,6 +39,11 @@ function handle(r: CaptureRecord) {
 }
 
 const server = http.createServer((req, res) => {
+  if (!LOCAL_HOST.test(req.headers.host ?? "")) {
+    res.statusCode = 403;
+    res.end();
+    return;
+  }
   if (req.method === "GET" && req.url === "/health") {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -46,10 +57,28 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
+  const origin = req.headers.origin;
+  if (origin && !origin.startsWith("chrome-extension://")) {
+    log(`refused a capture from ${origin}`);
+    res.statusCode = 403;
+    res.end();
+    return;
+  }
   let raw = "";
+  let tooBig = false;
   req.setEncoding("utf8");
-  req.on("data", (c) => (raw += c));
+  req.on("data", (c: string) => {
+    if (tooBig) return;
+    raw += c;
+    if (raw.length > MAX_BODY) {
+      tooBig = true;
+      raw = "";
+      res.statusCode = 413;
+      res.end();
+    }
+  });
   req.on("end", () => {
+    if (tooBig) return;
     res.statusCode = 204;
     res.end();
     try {
