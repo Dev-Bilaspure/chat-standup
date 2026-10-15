@@ -31,6 +31,8 @@ export type InputStats = {
   /** Pasted code/JSON/log snippets replaced by placeholders, and the characters that saved. */
   snippetsRemoved?: number;
   charsRemoved?: number;
+  /** Your code activity added to the input (git and GitHub), if set up. */
+  code?: { items: number; commits: number; errors: string[] };
 };
 export type StandupInput = { self: { id: string; name: string }; text: string; refs: Record<string, string>; stats: InputStats };
 

@@ -73,6 +73,14 @@ export function GenerationPanel({ g, showLink = true }: { g: Generation; showLin
         <CardContent>
           <StandupView output={g.output} sources={sources} />
           {g.stats?.truncated && <p className="mt-4 text-xs text-muted-foreground">Some busy chats were trimmed to your messages and mentions.</p>}
+          {g.stats?.code && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              {g.stats.code.items
+                ? `Included your code activity: ${g.stats.code.items} item${g.stats.code.items === 1 ? "" : "s"} (PRs, branches, reviews), ${g.stats.code.commits} commit${g.stats.code.commits === 1 ? "" : "s"}.`
+                : "No code activity of yours in this period."}
+              {g.stats.code.errors.length > 0 && <span className="text-amber-600 dark:text-amber-400"> Problems: {g.stats.code.errors.join("; ")}</span>}
+            </p>
+          )}
           {!!g.stats?.snippetsRemoved && (
             <p className="mt-4 text-xs text-muted-foreground">
               {g.stats.snippetsRemoved} pasted code/log snippet{g.stats.snippetsRemoved === 1 ? " was" : "s were"} left out of the model input ({compact(g.stats.charsRemoved ?? 0)} characters).

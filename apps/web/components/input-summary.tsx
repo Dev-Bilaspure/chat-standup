@@ -1,4 +1,6 @@
-import { buildStandupInput, dayCoverage, listChats } from "@chat-notes/core";
+import Link from "next/link";
+import { GitBranch } from "lucide-react";
+import { buildStandupInput, codeRepoCount, dayCoverage, listChats } from "@chat-notes/core";
 import { ChatChips } from "@/components/chats/chat-chips";
 import { CoverageRows } from "@/components/coverage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,6 +28,7 @@ export function InputSummary({ start, end }: { start: string; end: string }) {
         Based on <strong>{stats.messages}</strong> messages from <strong>{stats.conversations}</strong> chats, <strong>{stats.mine}</strong> of them yours.
       </p>
       {chats.length > 0 && <ChatChips chats={chats} />}
+      <CodeLine />
       <CoverageRows days={days} />
       {thin && (
         <p className="text-xs text-amber-600 dark:text-amber-400">
@@ -33,5 +36,30 @@ export function InputSummary({ start, end }: { start: string; end: string }) {
         </p>
       )}
     </div>
+  );
+}
+
+/** Whether your commits and PRs will be added (cheap: no git or GitHub calls here). */
+function CodeLine() {
+  const repos = codeRepoCount();
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <GitBranch className="size-3.5" />
+      {repos ? (
+        <span>
+          Your commits, PRs and reviews from {repos} repo{repos === 1 ? "" : "s"} are added when generating ·{" "}
+          <Link href="/data#code" className="underline-offset-2 hover:underline">
+            setup
+          </Link>
+        </span>
+      ) : (
+        <span>
+          Add your repos to include your commits and PRs ·{" "}
+          <Link href="/data#code" className="underline-offset-2 hover:underline">
+            how
+          </Link>
+        </span>
+      )}
+    </p>
   );
 }

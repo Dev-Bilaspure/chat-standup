@@ -1,0 +1,15 @@
+// Copy to chat-notes.config.json (not committed) and fill in your own paths.
+{
+  "code": {
+    // Git repos on this Mac, used to add your commits, PRs and reviews to stand-ups.
+    // Each entry is a repo, or a folder whose repos (directly inside it) are all used. "~" works.
+    "repos": [
+      "~/work/backend",
+      "~/projects"
+    ],
+    // Optional. Your commit emails; by default each repo's own `git config user.email`.
+    "emails": [],
+    // Optional. Also read PRs and reviews from GitHub with the gh CLI (needs `gh auth login`).
+    "github": true
+  }
+}

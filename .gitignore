@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 spike/llm/out/
 spike/llm/input.txt
+/chat-notes.config.json

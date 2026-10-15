@@ -4,7 +4,7 @@ import { DATA_DIR } from "../paths";
 import { formatDay } from "../time";
 
 /** Bump when prompts or input selection change, so evaluation can compare versions. */
-export const PROMPT_VERSION = "standup-v3";
+export const PROMPT_VERSION = "standup-v4";
 
 /**
  * Real updates the user wrote, used as a style reference. Kept in data/ (local, not in git) because
@@ -69,7 +69,16 @@ Details ("details"), shown when the user expands an update:
 - 2–5 short sub-points with the specifics: PR numbers and repos, Jira ids, what exactly changed or was tested, who was involved and what they did (approved, reported, asked), current status (raised / in review / merged / deployed to qa or prod), and anything still pending or blocking.
 - Only facts from the messages. Copy PR numbers and ids exactly as they appear.
 
-Every update lists the refs (like "r12") of all messages that support it — its text and its details.`;
+Code activity: when present, a section lists the user's own PRs, commits and reviews for the period, taken from git and GitHub (refs like "g3"). These are facts about what was actually done; the chat says why and with whom.
+- Use it to make updates precise: exact PR numbers and repos, and whether something was opened, merged or still open at the end of the period.
+- State the facts directly. Don't mention where they came from ("per code activity", "according to git", "on GitHub").
+- Merge it with the related chat into one update. A PR or a branch is at most one update; never one update per commit.
+- Work that appears only in code activity still counts: describe it from the PR title, description and commit messages, without guessing beyond them.
+- "moved shared branches" (pre-qa → qa and the like) is routine: never its own update. Mention it only inside a related update ("…and moved it to QA"), or leave it out.
+- Reviews of other people's PRs: one short update for meaningful ones ("Reviewed Priya's PR for …"); several can share one update.
+- Old PRs closed without merging: leave out unless the chat says why it matters.
+
+Every update lists the refs of everything that supports it, chat messages ("r12") and code activity ("g3") alike.`;
 
 function withStyle(system: string): string {
   const examples = styleExamples();

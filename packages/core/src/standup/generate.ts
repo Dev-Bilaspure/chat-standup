@@ -1,8 +1,10 @@
+import { codeItemLink, codeItemSummary, collectCodeActivity, renderCodeActivity, type CodeItem } from "../code/activity";
 import { getDb } from "../db";
 import { generateJson, llmConfig } from "../llm";
+import { rangeBounds } from "../time";
 import type { UpdatesOutput } from "./output";
 import { PROMPT_VERSION, STANDUP_SCHEMA, dailyPrompt, rangePrompt } from "./prompt";
-import { extractReferences } from "./references";
+import { extractReferences, type Reference } from "./references";
 import { buildStandupInput, type InputStats } from "./select";
 
 export type Kind = "daily" | "range";
@@ -19,11 +21,18 @@ export async function generateStandup(kind: Kind, start: string, end: string): P
   try {
     const input = buildStandupInput(start, end);
     stats = input.stats;
+
+    // Your commits, PRs and reviews from git and GitHub, if set up in chat-notes.config.json.
+    const [fromMs, toMs] = rangeBounds(start, end);
+    const code = await collectCodeActivity(fromMs, toMs);
+    const rendered = code?.items.length ? renderCodeActivity(code, fromMs, toMs) : null;
+    if (code) stats.code = { items: code.items.length, commits: code.commits, errors: code.errors };
     base.stats = JSON.stringify(stats);
-    if (!input.stats.messages) throw new Error(`No messages involving you were captured for ${start === end ? start : `${start} to ${end}`}.`);
+    if (!input.stats.messages && !rendered) throw new Error(`No messages involving you (or code activity) were captured for ${start === end ? start : `${start} to ${end}`}.`);
 
     const p = kind === "daily" ? dailyPrompt(input.self.name, start) : rangePrompt(input.self.name, start, end);
-    const user = `${p.header}\n\n${input.text}`;
+    const chat = input.stats.messages ? input.text : "(no chat messages involving you in this period)";
+    const user = `${p.header}\n\n${chat}${rendered ? `\n\n## Your code activity (from git and GitHub)\n${rendered.text}` : ""}`;
     base.input = user;
     const cfg = llmConfig();
     base.provider = cfg.provider;
@@ -31,6 +40,7 @@ export async function generateStandup(kind: Kind, start: string, end: string): P
 
     const res = await generateJson({ system: p.system, user, schema: STANDUP_SCHEMA, schemaName: "standup" });
     const raw = res.data as { updates?: { text: string; details?: string[]; refs?: string[] }[] };
+    const codeRefs: Record<string, CodeItem> = rendered?.refs ?? {};
 
     // References come from the full text of the messages each update cites, not from the model.
     const textOf = db.prepare("SELECT text FROM messages WHERE id = ?");
@@ -39,7 +49,14 @@ export async function generateStandup(kind: Kind, start: string, end: string): P
       updates: (raw.updates ?? []).map((u) => {
         const sourceIds = [...new Set((u.refs ?? []).map((r) => input.refs[r]).filter(Boolean))];
         const texts = sourceIds.map((id) => (textOf.get(id) as { text: string } | undefined)?.text ?? "");
-        return { text: u.text.trim(), details: (u.details ?? []).map((d) => d.trim()).filter(Boolean), references: extractReferences(texts), sourceIds };
+        const items = [...new Set(u.refs ?? [])].map((r) => codeRefs[r]).filter((i): i is CodeItem => !!i);
+        return {
+          text: u.text.trim(),
+          details: (u.details ?? []).map((d) => d.trim()).filter(Boolean),
+          references: mergeReferences(items.flatMap(codeItemLink), extractReferences(texts)),
+          sourceIds,
+          ...(items.length ? { code: items.map((i) => codeItemSummary(i, toMs)) } : {}),
+        };
       }),
     };
 
@@ -47,4 +64,18 @@ export async function generateStandup(kind: Kind, start: string, end: string): P
   } catch (err) {
     return Number(insert.run({ ...base, error: (err as Error).message }).lastInsertRowid);
   }
+}
+
+/** Code links first, then those found in messages; one chip per link. */
+function mergeReferences(code: Reference[], fromMessages: Reference[]): Reference[] {
+  const seen = new Set<string>();
+  const out: Reference[] = [];
+  for (const r of [...code, ...fromMessages]) {
+    const key = (r.url ?? r.label).replace(/\/+$/, "").toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(r);
+  }
+  const order = { pr: 0, jira: 1, doc: 2, link: 3 };
+  return out.sort((a, b) => order[a.kind] - order[b.kind]);
 }

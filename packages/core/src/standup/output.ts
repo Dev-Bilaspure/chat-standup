@@ -11,6 +11,8 @@ export type Bullet = {
   /** v2: PRs / Jira / docs found in the cited messages. */
   references?: Reference[];
   sourceIds: string[];
+  /** v4: the code activity (PRs, branches, reviews) this update is based on, one line each. */
+  code?: string[];
 };
 
 export const SECTIONS = [

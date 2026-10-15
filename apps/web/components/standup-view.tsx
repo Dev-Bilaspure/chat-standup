@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, GitBranch } from "lucide-react";
 import { SECTIONS, isUpdatesOutput, type Bullet, type SourceMessage, type StandupOutput } from "@chat-notes/core";
 import { PeopleText } from "@/components/people";
 import { RefChip, SourceMessages } from "@/components/sources";
@@ -57,7 +57,7 @@ function UpdateItem({ bullet: b, sources }: { bullet: Bullet; sources: Map<strin
             {refs.filter((r) => r.kind === "pr" || r.kind === "jira").length > 0 && (
               <span className="text-xs text-muted-foreground">{refs.filter((r) => r.kind === "pr" || r.kind === "jira").length} ref</span>
             )}
-            {!b.sourceIds.length && <Badge variant="destructive">no source</Badge>}
+            {!b.sourceIds.length && !b.code?.length && <Badge variant="destructive">no source</Badge>}
           </span>
         </summary>
 
@@ -80,6 +80,18 @@ function UpdateItem({ bullet: b, sources }: { bullet: Bullet; sources: Map<strin
             </div>
           )}
 
+          {b.code && b.code.length > 0 && (
+            <div className="space-y-1">
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <GitBranch className="size-3" /> From your code activity
+              </p>
+              <ul className="space-y-0.5 border-l pl-3 text-xs">
+                {b.code.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <SourceMessages ids={b.sourceIds} sources={sources} />
         </div>
       </details>

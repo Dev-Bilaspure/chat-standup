@@ -18,3 +18,5 @@ export * from "./todos/generate";
 export * from "./people";
 export * from "./storage";
 export * from "./chats";
+export * from "./code/config";
+export * from "./code/activity";

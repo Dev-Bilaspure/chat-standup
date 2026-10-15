@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { COLLECTOR_PORT, dayCoverage, getDb, getSetting, listChats, storageStats, toDateStr } from "@chat-notes/core";
+import { COLLECTOR_PORT, codeSetupStatus, dayCoverage, getDb, getSetting, listChats, storageStats, toDateStr } from "@chat-notes/core";
 import { BlockedChats } from "@/components/chats/blocked-chats";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { lastCaptureMs } from "@/components/capture-status";
@@ -82,6 +82,8 @@ export default async function DataPage() {
         </CardContent>
       </Card>
 
+      <CodeCard />
+
       <StorageCard />
 
       <Card id="blocked">
@@ -127,6 +129,75 @@ function StorageCard() {
             <div className="truncate text-xs text-muted-foreground">{i.hint}</div>
           </div>
         ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+const EXAMPLE = `{
+  "code": {
+    "repos": ["~/work/backend", "~/projects"],
+    "github": true
+  }
+}`;
+
+/** Code activity setup: which repos are read, your last commit in each, and GitHub sign-in. */
+async function CodeCard() {
+  const s = await codeSetupStatus();
+  const repos = s.entries.flatMap((e) => e.repos);
+  return (
+    <Card id="code">
+      <CardHeader>
+        <CardTitle>Code activity</CardTitle>
+        <CardDescription>
+          Stand-ups also use your own commits (every branch, pushed or not), PRs and reviews, read from your repos and GitHub at generation time. Only titles, messages
+          and short PR descriptions are sent to the model, never code. Set up in <code className="text-xs">{s.configPath.split("/").slice(-1)[0]}</code> at the repo root; changes
+          apply on the next generation.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm">
+        {s.error && <p className="text-destructive">{s.error}</p>}
+        {!s.configured ? (
+          <div className="space-y-2">
+            <p className="text-muted-foreground">
+              Not set up. Copy <code className="text-xs">chat-notes.config.example.json</code> to <code className="text-xs">chat-notes.config.json</code> and list your repos
+              (a repo, or a folder of repos; absolute paths, <code className="text-xs">~</code> works):
+            </p>
+            <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 text-xs">{EXAMPLE}</pre>
+          </div>
+        ) : (
+          <>
+            <ul className="divide-y rounded-lg border">
+              {s.entries.map((e) =>
+                e.status !== "ok" ? (
+                  <li key={e.entry} className="px-3 py-2 text-destructive">
+                    {e.entry}: {e.status === "missing" ? "path doesn't exist" : "not a git repo, and no git repos directly inside it"}
+                  </li>
+                ) : (
+                  e.repos.map((r) => (
+                    <li key={r.path} className="flex items-center gap-3 px-3 py-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate">{r.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{r.path}</div>
+                      </div>
+                      <div className="shrink-0 text-right text-xs text-muted-foreground">
+                        {r.lastCommitMs ? `your last commit ${timeAgo(r.lastCommitMs)}` : r.email ? `no commits by ${r.email}` : "no git email set"}
+                      </div>
+                    </li>
+                  ))
+                ),
+              )}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              {repos.length} repo{repos.length === 1 ? "" : "s"} ·{" "}
+              {s.github === null
+                ? "GitHub off"
+                : s.github.length === 0
+                  ? "no GitHub remotes found"
+                  : s.github.map((g) => (g.login ? `GitHub ${g.host}: signed in as ${g.login}` : `GitHub ${g.host}: ${g.error}`)).join(" · ")}
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   );

@@ -50,6 +50,17 @@ Updates are written in your voice: a flat "Updates:" list of one-liners, each ex
 status) with references taken from the cited messages. To steer the voice, put a few real updates you've written into
 `data/style.md` (local only, not in git); it's read on every generation, no restart needed.
 
+## Code activity in stand-ups
+
+Stand-ups can also use your own **commits** (every branch, pushed or not), **PRs** (opened, merged, closed) and
+**reviews**, read at generation time from local git and from GitHub via the `gh` CLI. They make updates precise
+(exact PR numbers, what merged) and catch work nobody discussed in chat. Only titles, commit messages and the first
+lines of PR descriptions go to the model, never code; a week adds roughly 1k tokens.
+
+To turn it on, copy `chat-notes.config.example.json` to `chat-notes.config.json` (not committed) and list your repos:
+each entry is a repo or a folder of repos, anywhere on your Mac. For GitHub, sign in once with
+`gh auth login --hostname <your GitHub host>`. **Data → Code activity** shows which repos were found and any problems.
+
 ## Todos
 
 **Todos** finds what your chats say you need to do: asks (reviews, approvals, checks), things you said you'd do,
